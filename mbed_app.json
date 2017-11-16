@@ -1,0 +1,44 @@
+{
+    "macros": [
+        "MBED_CONF_APP_MAIN_STACK_SIZE=10240"
+    ],
+    "config": {
+        "estimated-application-size": {
+            "required": 1
+        },
+        "protagonist-file": {
+            "required": 1
+        },
+        "protagonist-flash": {
+            "required": 1
+        },
+        "protagonist-file-to-flash": {
+            "required": 1
+        },
+        "network-interface":{
+            "help": "Options are ETHERNET, WIFI_ESP8266, WIFI_ODIN",
+            "value": "ETHERNET"
+        }
+    },
+    "target_overrides": {
+        "*": {
+            "target.features_add": ["COMMON_PAL", "NANOSTACK"],
+            "platform.stdio-baud-rate": 115200,
+            "platform.stdio-convert-newlines": true,
+            "storage-selector.storage": "SD_CARD",
+            "storage-selector.filesystem": "FAT",
+            "storage-selector.mount-point": "\"bd\"",
+            "app.estimated-application-size": "0x50000",
+            "app.protagonist-file": "\"bogdan.h\"",
+            "app.protagonist-flash": "\"alice.h\"",
+            "app.protagonist-file-to-flash": "\"alice.h\""
+        },
+        "NRF52840_DK": {
+            "app.protagonist-file": "\"elizabeth.h\"",
+            "app.estimated-application-size": "0x70000"
+        },
+        "UBLOX_EVK_ODIN_W2": {
+            "target.device_has_remove": ["EMAC"]
+        }
+    }
+}
