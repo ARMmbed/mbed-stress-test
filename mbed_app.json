@@ -34,6 +34,7 @@
             "app.protagonist-file-to-flash": "\"alice.h\""
         },
         "NRF52840_DK": {
+            "target.macros": ["MBED_TICKLESS"],
             "app.protagonist-file": "\"elizabeth.h\"",
             "app.estimated-application-size": "0x70000"
         },
