@@ -27,12 +27,14 @@
 #include "unity/unity.h"
 #include "greentea-client/test_env.h"
 
+using namespace utest::v1;
+
+#if DEVICE_FLASH
+
 #include "mbed_stress_test_file.h"
 #include "mbed_stress_test_flash.h"
 
 #include MBED_CONF_APP_PROTAGONIST_FILE_TO_FLASH
-
-using namespace utest::v1;
 
 typedef struct {
     size_t size;
@@ -209,13 +211,6 @@ static control_t test_buffer_32k(const size_t call_count)
     return CaseNext;
 }
 
-utest::v1::status_t greentea_setup(const size_t number_of_cases)
-{
-    GREENTEA_SETUP(120*60, "default_auto");
-
-    return greentea_test_setup_handler(number_of_cases);
-}
-
 Case cases[] = {
     Case("Setup", test_setup),
     Case("Buffer 32k", test_buffer_32k),
@@ -225,6 +220,26 @@ Case cases[] = {
 //    Case("Buffer  2k", test_buffer_2k),
 //    Case("Buffer  1k", test_buffer_1k),
 };
+
+#else
+#warning File-to-Flash test not supported on this target
+
+void dummy_test(void)
+{
+}
+
+Case cases[] = {
+    Case("Dummy test", dummy_test)
+};
+
+#endif /* DEVICE_FLASH */
+
+utest::v1::status_t greentea_setup(const size_t number_of_cases)
+{
+    GREENTEA_SETUP(120*60, "default_auto");
+
+    return greentea_test_setup_handler(number_of_cases);
+}
 
 Specification specification(greentea_setup, cases);
 

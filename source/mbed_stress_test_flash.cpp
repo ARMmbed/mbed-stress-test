@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#if DEVICE_FLASH
+
 #include "mbed.h"
 #include "unity/unity.h"
 #include <inttypes.h>
@@ -112,3 +114,5 @@ void mbed_stress_test_compare_flash(size_t offset, const unsigned char* data, si
 
     free(buffer);
 }
+
+#endif /* DEVICE_FLASH */

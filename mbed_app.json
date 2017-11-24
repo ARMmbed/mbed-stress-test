@@ -29,9 +29,13 @@
             "storage-selector.filesystem": "FAT",
             "storage-selector.mount-point": "\"bd\"",
             "app.estimated-application-size": "0x50000",
-            "app.protagonist-file": "\"bogdan.h\"",
+            "app.protagonist-file": "\"alice.h\"",
             "app.protagonist-flash": "\"alice.h\"",
             "app.protagonist-file-to-flash": "\"alice.h\""
+        },
+        "NRF52_DK": {
+            "target.macros": ["MBED_TICKLESS"],
+            "app.estimated-application-size": "0x70000"
         },
         "NRF52840_DK": {
             "target.macros": ["MBED_TICKLESS"],

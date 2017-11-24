@@ -23,15 +23,17 @@
 
 #include "mbed.h"
 
-#include "mbed_stress_test_flash.h"
-
 #include "utest/utest.h"
 #include "unity/unity.h"
 #include "greentea-client/test_env.h"
 
-#include MBED_CONF_APP_PROTAGONIST_FLASH
-
 using namespace utest::v1;
+
+#if DEVICE_FLASH
+
+#include "mbed_stress_test_flash.h"
+
+#include MBED_CONF_APP_PROTAGONIST_FLASH
 
 void flash_test(void)
 {
@@ -98,15 +100,28 @@ void flash_test(void)
     }
 }
 
+Case cases[] = {
+    Case("Flash test", flash_test),
+};
+
+#else
+#warning FlashIAP test not supported on this target
+
+void dummy(void)
+{
+}
+
+Case cases[] = {
+    Case("Dummy test", dummy),
+};
+
+#endif /* DEVICE_FLASH */
+
 utest::v1::status_t greentea_setup(const size_t number_of_cases)
 {
     GREENTEA_SETUP(5*60, "default_auto");
     return greentea_test_setup_handler(number_of_cases);
 }
-
-Case cases[] = {
-    Case("Flash test", flash_test),
-};
 
 Specification specification(greentea_setup, cases, greentea_test_teardown_handler);
 
