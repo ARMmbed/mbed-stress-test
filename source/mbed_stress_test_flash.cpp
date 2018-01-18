@@ -63,15 +63,20 @@ void mbed_stress_test_write_flash(size_t offset, const unsigned char* buffer, si
 
     uint32_t start_address = flash_start + offset;
 
+    printf("program: %" PRIX32 " %u\r\n", start_address, buffer_length);
+
     size_t index = 0;
     while (index < buffer_length)
     {
-        if ((page_size >= 1024) || (index % (page_size * 0x1000) == 0))
-        {
-            printf("program: %" PRIX32 " %" PRIu32 "\r\n", start_address + index, page_size);
-        }
+        TEST_ASSERT_MESSAGE(start_address + index + page_size <= flash_size, "address and data out of bounds");
 
         int result = flash.program(&buffer[index], start_address + index, page_size);
+
+        if (result != 0)
+        {
+            printf("program: %" PRIX32 " %" PRIu32 "\r\n", start_address + index, page_size);
+
+        }
         TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to program flash");
 
         index += page_size;
@@ -101,7 +106,7 @@ void mbed_stress_test_compare_flash(size_t offset, const unsigned char* data, si
 
         if ((page_size >= 1024) || (index % (page_size * 0x1000) == 0))
         {
-            printf("read: %" PRIX32 " %" PRIu32 "\r\n", start_address + index, page_size);
+            printf("read: %u %" PRIu32 "\r\n", start_address + index, page_size);
         }
 
         int result = flash.read(buffer, start_address + index, read_length);

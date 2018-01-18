@@ -19,7 +19,7 @@
 #include "storage-selector/storage-selector.h"
 #include "unity/unity.h"
 
-FileSystem* fs = filesystem_selector();
+static FileSystem* fs = filesystem_selector();
 
 void mbed_stress_test_format_file(void)
 {

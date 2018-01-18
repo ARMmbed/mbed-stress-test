@@ -39,6 +39,9 @@ void flash_test(void)
 {
     FlashIAP flash;
 
+    int result = flash.init();
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to initialize FlashIAP");
+
     uint32_t page_size = flash.get_page_size();
     uint32_t flash_size = flash.get_flash_size();
 

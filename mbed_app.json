@@ -6,6 +6,9 @@
         "estimated-application-size": {
             "required": 1
         },
+        "protagonist-download-https": {
+            "required": 1
+        },
         "protagonist-file": {
             "required": 1
         },
@@ -29,6 +32,7 @@
             "storage-selector.filesystem": "FAT",
             "storage-selector.mount-point": "\"bd\"",
             "app.estimated-application-size": "0x50000",
+            "app.protagonist-download-https": "\"alice.h\"",
             "app.protagonist-file": "\"alice.h\"",
             "app.protagonist-flash": "\"alice.h\"",
             "app.protagonist-file-to-flash": "\"alice.h\""
