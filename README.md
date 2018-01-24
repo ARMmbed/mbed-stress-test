@@ -13,7 +13,7 @@
 
 ### Usage
 
- * Compile: `mbed test --compile -m TARGET -t TOOLCHAIN -n '*stress*'`
+ * Compile: `mbed test --compile -m TARGET -t TOOLCHAIN --app-config mbed_app.json -n '*stress*'`
  * Run: `mbedgt -vV`
  * Note: the tests can run for 60 minutes.
 
