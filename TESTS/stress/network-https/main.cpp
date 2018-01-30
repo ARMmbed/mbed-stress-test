@@ -28,8 +28,7 @@
 #include "greentea-client/test_env.h"
 
 #include "easy-connect.h"
-
-#include <string>
+#include "tls_socket.h"
 
 using namespace utest::v1;
 
@@ -39,6 +38,8 @@ using namespace utest::v1;
 static volatile bool event_fired = false;
 
 NetworkInterface* interface = NULL;
+
+#define MAX_RETRIES 3
 
 const char part1[] = "GET /firmware/";
 const char filename[] = MBED_CONF_APP_PROTAGONIST_DOWNLOAD;
@@ -51,14 +52,26 @@ static void socket_event(void)
 
 void download(size_t size)
 {
-    int result;
+    int result = -1;
 
-    /* setup TCP socket */
-    TCPSocket* tcpsocket = new TCPSocket(interface);
-    TEST_ASSERT_NOT_NULL_MESSAGE(tcpsocket, "failed to instantiate tlssocket");
+    /* setup TLS socket */
+    TLSSocket* tlssocket = new TLSSocket(interface, "lootbox.s3.dualstack.us-west-2.amazonaws.com", 443, SSL_CA_PEM);
+    TEST_ASSERT_NOT_NULL_MESSAGE(tlssocket, "failed to instantiate tlssocket");
 
-    result = tcpsocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 80);
+    tlssocket->set_debug(true);
+    printf("debug mode set\r\n");
+
+    for (int tries = 0; tries < MAX_RETRIES; tries++) {
+        result = tlssocket->connect();
+        if (result == 0) {
+            break;
+        }
+        printf("connection failed. retry %d of %d\r\n", tries, MAX_RETRIES);
+    }
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to connect");
+
+    TCPSocket* tcpsocket = tlssocket->get_tcp_socket();
+    TEST_ASSERT_NOT_NULL_MESSAGE(tlssocket, "failed to get underlying TCPSocket");
 
     tcpsocket->set_blocking(false);
     printf("non-blocking mode set\r\n");
@@ -81,8 +94,10 @@ void download(size_t size)
 
 
     /* send request to server */
-    result = tcpsocket->send(request, request_size);
-    TEST_ASSERT_EQUAL_INT_MESSAGE(request_size, result, "failed to write ssl");        
+    result = mbedtls_ssl_write(tlssocket->get_ssl_context(), (const unsigned char*) request, request_size);
+    TEST_ASSERT_MESSAGE(result != MBEDTLS_ERR_SSL_WANT_READ, "failed to write ssl");
+    TEST_ASSERT_MESSAGE(result != MBEDTLS_ERR_SSL_WANT_WRITE, "failed to write ssl");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(request_size, result, "failed to write ssl");
 
 
     /* read response */
@@ -107,8 +122,8 @@ void download(size_t size)
         /* loop until all data has been read from socket */
         do
         {
-            result = tcpsocket->recv(receive_buffer, size);
-            TEST_ASSERT_MESSAGE((result == NSAPI_ERROR_WOULD_BLOCK) || (result >= 0), "failed to read socket");
+            result = mbedtls_ssl_read(tlssocket->get_ssl_context(), (unsigned char*) receive_buffer, size - 1);
+            TEST_ASSERT_MESSAGE((result == MBEDTLS_ERR_SSL_WANT_READ) || (result >= 0), "failed to read ssl");
 
 //            printf("result: %d\r\n", result);
 
@@ -146,10 +161,16 @@ void download(size_t size)
                 printf("received_bytes: %u\r\n", received_bytes);
             }
         }
-        while (result > 0);
+        while ((result > 0) && (received_bytes < expected_bytes));
+
+        if (result == MBEDTLS_ERR_SSL_WANT_WRITE)
+        {
+            printf("MBEDTLS_ERR_SSL_WANT_WRITE: %d\r\n", MBEDTLS_ERR_SSL_WANT_WRITE);
+            break;
+        }
     }
 
-    delete tcpsocket;
+    delete tlssocket;
     delete[] receive_buffer;
 
     printf("done\r\n");

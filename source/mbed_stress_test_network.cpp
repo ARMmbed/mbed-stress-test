@@ -25,6 +25,7 @@
 
 static volatile bool event_fired = false;
 #define BUFFER_SIZE 1024
+#define MAX_RETRIES 3
 
 const char request_template[] = 
     "GET /firmware/%s.txt HTTP/1.1\n"
@@ -39,7 +40,7 @@ static void socket_event(void)
 
 size_t mbed_stress_test_download(NetworkInterface* interface, const char* filename, size_t offset, char* data, size_t data_length, bool tls)
 {
-    int result;
+    int result = -1;
 
     TCPSocket* tcpsocket = NULL;
     TLSSocket* tlssocket = NULL;
@@ -53,7 +54,13 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
         tlssocket->set_debug(true);
         printf("debug mode set\r\n");
 
-        result = tlssocket->connect();
+        for (int tries = 0; tries < MAX_RETRIES; tries++) {
+            result = tlssocket->connect();
+            if (result == 0) {
+                break;
+            }
+            printf("connection failed. retry %d of %d\r\n", tries, MAX_RETRIES);
+        }
         TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to connect");
 
         tcpsocket = tlssocket->get_tcp_socket();
@@ -65,7 +72,13 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
         tcpsocket = new TCPSocket(interface);
         TEST_ASSERT_NOT_NULL_MESSAGE(tcpsocket, "failed to create TCPSocket");        
 
-        result = tcpsocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 80);
+        for (int tries = 0; tries < MAX_RETRIES; tries++) {
+            result = tcpsocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 80);
+            if (result == 0) {
+                break;
+            }
+            printf("connection failed. retry %d of %d\r\n", tries, MAX_RETRIES);
+        }
         TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to connect");
     }
 
@@ -155,7 +168,7 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
                 printf("received_bytes: %u\r\n", received_bytes);
             }
         }
-        while (result > 0);
+        while ((result > 0) && (received_bytes < expected_bytes));
 
         if (result == MBEDTLS_ERR_SSL_WANT_WRITE)
         {

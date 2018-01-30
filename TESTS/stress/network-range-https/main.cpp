@@ -28,7 +28,7 @@
 #include "greentea-client/test_env.h"
 
 #include "easy-connect.h"
-#include "mbed_stress_test_download.h"
+#include "mbed_stress_test_network.h"
 
 using namespace utest::v1;
 
@@ -57,7 +57,7 @@ void download(size_t size)
             actual_bytes = size;
         }
 
-        size_t received_bytes = mbed_stress_test_download(interface, filename, offset, buffer, actual_bytes, false);
+        size_t received_bytes = mbed_stress_test_download(interface, filename, offset, buffer, actual_bytes, true);
         TEST_ASSERT_EQUAL_INT_MESSAGE(actual_bytes, received_bytes, "received incorrect number of bytes");
         TEST_ASSERT_EQUAL_STRING_LEN_MESSAGE(&story[offset],
                                              buffer,
