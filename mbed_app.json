@@ -4,19 +4,19 @@
     ],
     "config": {
         "estimated-application-size": {
-            "required": 1
+            "required": true
         },
         "protagonist-download": {
-            "required": 1
+            "required": true
         },
         "protagonist-file": {
-            "required": 1
+            "required": true
         },
         "protagonist-flash": {
-            "required": 1
+            "required": true
         },
         "protagonist-file-to-flash": {
-            "required": 1
+            "required": true
         },
         "network-interface":{
             "help": "Options are ETHERNET, WIFI_ESP8266, WIFI_ODIN",
@@ -31,7 +31,7 @@
             "storage-selector.storage": "SD_CARD",
             "storage-selector.filesystem": "FAT",
             "storage-selector.mount-point": "\"bd\"",
-            "app.estimated-application-size": "0x50000",
+            "app.estimated-application-size": "0x60000",
             "app.protagonist-download": "\"alice.h\"",
             "app.protagonist-file": "\"alice.h\"",
             "app.protagonist-flash": "\"alice.h\"",
