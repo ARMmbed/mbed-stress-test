@@ -132,7 +132,7 @@ void download(void)
     /* setup request */
     /* -1 to remove h from .h in header file name */
     size_t request_size = strlen(part1) + strlen(filename) - 1 + strlen(part2) + 1;
-    char request[request_size] = { 0 };
+    char *request = new char[request_size]();
 
     /* construct request */
     memcpy(&request[0], part1, strlen(part1));
@@ -219,6 +219,7 @@ void download(void)
         }
     }
 
+    delete request;
     delete tlssocket;
     delete[] receive_buffer;
 

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#if DEVICE_FLASH
-
 #include "mbed.h"
 #include "unity/unity.h"
 #include <inttypes.h>
@@ -192,5 +190,3 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
 
     return received_bytes;
 }
-
-#endif /* DEVICE_FLASH */
