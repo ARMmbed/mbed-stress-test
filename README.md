@@ -104,3 +104,21 @@ mbedgt: test case report:
 mbedgt: test case results: 52 OK
 mbedgt: completed in 3389.84 sec
 ```
+
+### Frequently Asked Questions
+
+**Compilation fails due to missing `tls_socket.h`**
+
+* If run `mbed deploy` check for any errors, if you have not installed Mercurial it cannot fetch the [tls_socket.h](https://os.mbed.com/teams/sandbox/code/mbed-http/file/3004056e4661/source/tls_socket.h/), i.e. command `hg` will fail.
+* You can install Mercurial in Linux via `sudo apt-get install mercurial`.
+
+**Compilation fails to various SSL-issues**
+
+* Likely the board you are trying does not have Mbed TLS entropy implemented. You can add these macro -definitions to work around that problem (but bear in mind - this is **no way** for a production secure solution).
+
+```json
+    "macros": [
+        "MBED_CONF_APP_MAIN_STACK_SIZE=10240",  "MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES", "MBEDTLS_TEST_NULL_ENTROPY"
+
+```
+You will gets lots of warning during compilation with those, though.
