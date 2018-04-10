@@ -19,7 +19,7 @@
             "required": true
         },
         "network-interface":{
-            "help": "Options are ETHERNET, WIFI_ESP8266, WIFI_ODIN",
+            "help": "Options are ETHERNET, WIFI_ESP8266, WIFI_ODIN, WIFI_RTW, WIFI_WIZFI310, WIFI_ISM43362",
             "value": "ETHERNET"
         }
     },
