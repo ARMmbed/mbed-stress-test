@@ -33,7 +33,7 @@
 using namespace utest::v1;
 
 #include MBED_CONF_APP_PROTAGONIST_DOWNLOAD
-#include "certificate_aws_s3.h"
+#include "cert_der.h"
 
 static volatile bool event_fired = false;
 
@@ -55,7 +55,7 @@ void download(size_t size)
     int result = -1;
 
     /* setup TLS socket */
-    DTLSSocket* dtlssocket = new DTLSSocket(interface, "lootbox.s3.dualstack.us-west-2.amazonaws.com", 443, SSL_CA_PEM);
+    DTLSSocket* dtlssocket = new DTLSSocket(interface, "lootbox.s3.dualstack.us-west-2.amazonaws.com", 443, cert_der, sizeof(cert_der));
     TEST_ASSERT_NOT_NULL_MESSAGE(dtlssocket, "failed to instantiate dtlssocket");
 
     dtlssocket->set_debug(true);

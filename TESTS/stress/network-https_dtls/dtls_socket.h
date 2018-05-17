@@ -46,9 +46,10 @@
  */
 class DTLSSocket {
 public:
-    DTLSSocket(NetworkInterface* net_iface, const char* hostname, uint16_t port, const char* ssl_ca_pem) {
+    DTLSSocket(NetworkInterface* net_iface, const char* hostname, uint16_t port, const char* ssl_ca_der, size_t ssl_ca_der_len) {
         _udpsocket = new UDPSocket(net_iface);
-        _ssl_ca_pem = ssl_ca_pem;
+        _ssl_ca_der     = ssl_ca_der;
+        _ssl_ca_der_len = ssl_ca_der_len;
         _is_connected = false;
         _debug = false;
         _hostname = hostname;
@@ -92,9 +93,11 @@ public:
             _error = ret;
             return _error;
         }
-
-        if ((ret = mbedtls_x509_crt_parse(&_cacert, (const unsigned char *)_ssl_ca_pem,
-                           strlen(_ssl_ca_pem) + 1)) != 0) {
+#if 0
+        if ((ret = mbedtls_x509_crt_parse/*mbedtls_x509_crt_parse_der*/(&_cacert, (const unsigned char *)_ssl_ca_der,
+                           strlen(_ssl_ca_der) + 1)) != 0) {
+#endif                                
+        if ((ret = mbedtls_x509_crt_parse(&_cacert, (const unsigned char *)_ssl_ca_der, _ssl_ca_der_len)) != 0) {
             print_mbedtls_error("mbedtls_x509_crt_parse", ret);
             _error = ret;
             return _error;
@@ -331,7 +334,8 @@ private:
     UDPSocket* _udpsocket;
 
     const char* DRBG_PERS;
-    const char* _ssl_ca_pem;
+    const char* _ssl_ca_der;
+    size_t      _ssl_ca_der_len;
     
     static const char* _hostname;
     static uint16_t _port;
