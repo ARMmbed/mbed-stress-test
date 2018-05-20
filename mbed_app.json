@@ -21,6 +21,14 @@
         "network-interface":{
             "help": "Options are ETHERNET, WIFI_ESP8266, WIFI_ODIN, WIFI_RTW, WIFI_WIZFI310, WIFI_ISM43362",
             "value": "ETHERNET"
+        },
+        "wifi-ssid": {
+            "help": "WiFi SSID",
+            "value": "\"SSID\""
+        },
+        "wifi-password": {
+            "help": "WiFi Password",
+            "value": "\"Password\""
         }
     },
     "target_overrides": {
@@ -36,6 +44,9 @@
             "app.protagonist-file": "\"alice.h\"",
             "app.protagonist-flash": "\"alice.h\"",
             "app.protagonist-file-to-flash": "\"alice.h\""
+        },
+        "DISCO_L475VG_IOT01A": {
+            "app.network-interface": "WIFI_ISM43362"
         },
         "NRF52_DK": {
             "target.macros": ["MBED_TICKLESS"],
