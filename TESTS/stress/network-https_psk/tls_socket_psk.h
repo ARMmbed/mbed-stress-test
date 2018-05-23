@@ -41,9 +41,12 @@
 #endif
 
 const static int PSK_SUITES[] = {
+    MBEDTLS_TLS_PSK_WITH_AES_256_CBC_SHA,
+#if 0    
     MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,
     MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8,
     MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8,
+#endif
     0
 };
 
@@ -158,12 +161,17 @@ public:
             return _error;
         }
 /* NEW CODE BELOW FOR PSK */
-        if ((ret = mbedtls_ssl_conf_psk(&_ssl_conf, psk, psk_len, NULL, 0)) != 0) {
+        size_t        psk_identity_len = 1;
+        unsigned char psk_identity     = '1'; // 0x31
+        if ((ret = mbedtls_ssl_conf_psk(&_ssl_conf, psk, psk_len, &psk_identity, psk_identity_len)) != 0) {
             print_mbedtls_error("mbedtls_ssl_conf_psk", ret);
             _error = ret;
             return _error;
         }
+
+#if 1        
         mbedtls_ssl_conf_ciphersuites(&_ssl_conf, PSK_SUITES);
+#endif         
 /* END NEW CODE FOR PSK */            
             
        /* Start the handshake, the rest will be done in onReceive() */

@@ -45,7 +45,11 @@ NetworkInterface* interface = NULL;
 
 const char part1[] = "GET /firmware/";
 const char filename[] = MBED_CONF_APP_PROTAGONIST_DOWNLOAD;
+#if 0
 const char part2[] = "txt HTTP/1.1\nHost: lootbox.s3.dualstack.us-west-2.amazonaws.com\n\n";
+#endif 
+const char part2[] = "txt\r\n\r\n";
+
 const unsigned char psk[] = {1,2,3,4};
 
 static void socket_event(void)
@@ -58,7 +62,9 @@ void download(size_t size)
     int result = -1;
 
     /* setup TLS socket */
-    TLSSocketPsk* tlssocket = new TLSSocketPsk(interface, "lootbox.s3.dualstack.us-west-2.amazonaws.com", 443);
+    TLSSocketPsk* tlssocket = new TLSSocketPsk(interface, 
+                                               /*"lootbox.s3.dualstack.us-west-2.amazonaws.com"*/"192.168.100.5", 
+                                               /*443*/4430);
     TEST_ASSERT_NOT_NULL_MESSAGE(tlssocket, "failed to instantiate tlssocket");
 
     tlssocket->set_debug(true);
@@ -85,8 +91,9 @@ void download(size_t size)
 
     /* setup request */
     /* -1 to remove h from .h in header file name */
-    size_t request_size = strlen(part1) + strlen(filename) - 1 + strlen(part2) + 1;
+    size_t request_size = strlen(part1) + strlen(filename) - 1 + strlen(part2)/* + 1*/;
     char *request = new char[request_size]();
+    memset(request, '\0', request_size);
 
     /* construct request */
     memcpy(&request[0], part1, strlen(part1));
