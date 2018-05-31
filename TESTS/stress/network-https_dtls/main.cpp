@@ -33,7 +33,9 @@
 using namespace utest::v1;
 
 #include MBED_CONF_APP_PROTAGONIST_DOWNLOAD
-#include "cert_der.h"
+#include "sertti_der.h"
+
+#include "mbedtls/timing.h"
 
 static volatile bool event_fired = false;
 
@@ -55,7 +57,12 @@ void download(size_t size)
     int result = -1;
 
     /* setup TLS socket */
-    DTLSSocket* dtlssocket = new DTLSSocket(interface, "lootbox.s3.dualstack.us-west-2.amazonaws.com", 443, cert_der, sizeof(cert_der));
+    DTLSSocket* dtlssocket = new DTLSSocket(interface, 
+                                            /*"lootbox.s3.dualstack.us-west-2.amazonaws.com"*/"192.168.100.5", 
+                                            /*443*/4430, 
+                                            (const char*)SSL_CA_PEM,
+                                            sizeof(SSL_CA_PEM));
+    
     TEST_ASSERT_NOT_NULL_MESSAGE(dtlssocket, "failed to instantiate dtlssocket");
 
     dtlssocket->set_debug(true);
@@ -82,7 +89,7 @@ void download(size_t size)
 
     /* setup request */
     /* -1 to remove h from .h in header file name */
-    size_t request_size = strlen(part1) + strlen(filename) - 1 + strlen(part2) + 1;
+    size_t request_size = strlen(part1) + strlen(filename) - 1 + strlen(part2)/* + 1*/;
     char *request = new char[request_size]();
 
     /* construct request */
@@ -208,4 +215,38 @@ Specification specification(greentea_setup, cases);
 int main()
 {
     return !Harness::run(specification);
+}
+
+void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms )
+{
+    printf("!!mbedtls_timing_set_delay \r\n");
+    
+    mbedtls_timing_delay_context *ctx = (mbedtls_timing_delay_context *) data;
+
+    ctx->int_ms = int_ms;
+    ctx->fin_ms = fin_ms;
+
+    if( fin_ms != 0 )
+        (void) mbedtls_timing_get_timer( &ctx->timer, 1 );    
+}
+
+int mbedtls_timing_get_delay( void *data )
+{
+    printf("!!mbedtls_timing_get_delay \r\n");
+    
+    mbedtls_timing_delay_context *ctx = (mbedtls_timing_delay_context *) data;
+    unsigned long elapsed_ms;
+
+    if( ctx->fin_ms == 0 )
+        return( -1 );
+
+    elapsed_ms = mbedtls_timing_get_timer( &ctx->timer, 0 );
+
+    if( elapsed_ms >= ctx->fin_ms )
+        return( 2 );
+
+    if( elapsed_ms >= ctx->int_ms )
+        return( 1 );
+
+    return( 0 );
 }

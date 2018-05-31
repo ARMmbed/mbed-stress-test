@@ -35,11 +35,11 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/error.h"
+#include "mbedtls/timing.h"
 
 #if DEBUG_LEVEL > 0
 #include "mbedtls/debug.h"
 #endif
-
     
 /**
  * \brief DTLSSocket a wrapper around UDPSocket for interacting with TLS servers
@@ -121,7 +121,7 @@ public:
         /* It is possible to disable authentication by passing
          * MBEDTLS_SSL_VERIFY_NONE in the call to mbedtls_ssl_conf_authmode()
          */
-        mbedtls_ssl_conf_authmode(&_ssl_conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+        mbedtls_ssl_conf_authmode(&_ssl_conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
 
 #if DEBUG_LEVEL > 0
         mbedtls_ssl_conf_verify(&_ssl_conf, my_verify, NULL);
@@ -157,6 +157,8 @@ public:
             return _error;
         }        
 
+        mbedtls_ssl_set_timer_cb(&_ssl, NULL, mbedtls_timing_set_delay, mbedtls_timing_get_delay);
+        
        /* Start the handshake, the rest will be done in onReceive() */
         if (_debug) mbedtls_printf("Starting the TLS handshake...\r\n");
         ret = mbedtls_ssl_handshake(&_ssl);
