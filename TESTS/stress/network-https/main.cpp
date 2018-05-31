@@ -33,7 +33,10 @@
 using namespace utest::v1;
 
 #include MBED_CONF_APP_PROTAGONIST_DOWNLOAD
+#if 0
 #include "certificate_aws_s3.h"
+#endif
+#include "sertti_der.h"
 
 static volatile bool event_fired = false;
 
@@ -54,8 +57,13 @@ void download(size_t size)
 {
     int result = -1;
 
+    printf("!!SSL_CA_PEM: %d", sizeof(SSL_CA_PEM));    
     /* setup TLS socket */
-    TLSSocket* tlssocket = new TLSSocket(interface, "lootbox.s3.dualstack.us-west-2.amazonaws.com", 443, SSL_CA_PEM);
+    TLSSocket* tlssocket = new TLSSocket(interface, 
+                                         /*"lootbox.s3.dualstack.us-west-2.amazonaws.com"*/"192.168.100.5", 
+                                         /*443*/4430, 
+                                         (const char*)SSL_CA_PEM,
+                                         sizeof(SSL_CA_PEM));
     TEST_ASSERT_NOT_NULL_MESSAGE(tlssocket, "failed to instantiate tlssocket");
 
     tlssocket->set_debug(true);
@@ -82,7 +90,7 @@ void download(size_t size)
 
     /* setup request */
     /* -1 to remove h from .h in header file name */
-    size_t request_size = strlen(part1) + strlen(filename) - 1 + strlen(part2) + 1;
+    size_t request_size = strlen(part1) + strlen(filename) - 1 + strlen(part2)/* + 1*/;
     char *request = new char[request_size]();
 
     /* construct request */
@@ -122,13 +130,15 @@ void download(size_t size)
             result = mbedtls_ssl_read(tlssocket->get_ssl_context(), (unsigned char*) receive_buffer, size - 1);
             TEST_ASSERT_MESSAGE((result == MBEDTLS_ERR_SSL_WANT_READ) || (result >= 0), "failed to read ssl");
 
-//            printf("result: %d\r\n", result);
+            printf("mbedtls_ssl_read result: %d\r\n", result);
 
             if (result > 0)
             {
                 /* skip HTTP header */
                 if (body_index == 0)
                 {
+                    printf("body_index == 0\r\n");
+                    
                     std::string header(receive_buffer, result);
                     body_index = header.find("\r\n\r\n");
                     TEST_ASSERT_MESSAGE(body_index != std::string::npos, "failed to find body");
@@ -145,6 +155,8 @@ void download(size_t size)
                 }
                 else
                 {
+                    printf("body_index != 0\r\n");
+                    
                     TEST_ASSERT_EQUAL_STRING_LEN_MESSAGE(&story[received_bytes],
                                                          receive_buffer,
                                                          result,
