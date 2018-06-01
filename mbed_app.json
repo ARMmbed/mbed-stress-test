@@ -1,6 +1,7 @@
 {
     "macros": [
-        "MBED_CONF_APP_MAIN_STACK_SIZE=10240"
+        "MBED_CONF_APP_MAIN_STACK_SIZE=10240",
+        "MBED_TRACE_MAX_LEVEL=TRACE_LEVEL_DEBUG"
     ],
     "config": {
         "estimated-application-size": {
@@ -34,6 +35,7 @@
     "target_overrides": {
         "*": {
             "target.features_add": ["COMMON_PAL", "NANOSTACK"],
+            "mbed-trace.enable": 1,
             "platform.stdio-baud-rate": 115200,
             "platform.stdio-convert-newlines": true,
             "storage-selector.storage": "SD_CARD",

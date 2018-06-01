@@ -22,6 +22,9 @@
  */
 
 #include "mbed.h"
+#include "rtos.h"
+#include "mbed-trace/mbed_trace.h"
+#define TRACE_GROUP "main"
 
 #include "utest/utest.h"
 #include "unity/unity.h"
@@ -50,6 +53,8 @@ static void socket_event(void)
 {
     event_fired = true;
 }
+
+
 
 void download(size_t size)
 {
@@ -235,7 +240,22 @@ Case cases[] = {
 
 Specification specification(greentea_setup, cases);
 
+
+static Mutex stdio_mutex;
+static void stdio_mutex_wait()
+{
+    stdio_mutex.lock();
+}
+static void stdio_mutex_release()
+{
+    stdio_mutex.unlock();
+}
+
 int main()
 {
+    mbed_trace_mutex_wait_function_set(stdio_mutex_wait);
+    mbed_trace_mutex_release_function_set(stdio_mutex_release);
+    mbed_trace_init();
+
     return !Harness::run(specification);
 }
