@@ -21,7 +21,28 @@
         },
         "network-interface":{
             "help": "Options are ETHERNET, WIFI_ESP8266, WIFI_ODIN, WIFI_RTW, WIFI_WIZFI310, WIFI_ISM43362",
-            "value": "ETHERNET"
+            "value": "CELLULAR_ONBOARD"
+        },
+        "sock-type": "TCP",
+        "modem_trace": {
+            "help": "Turns AT command trace on/off from the cellular modem, defaults to off",
+            "value": true
+        },
+        "sim-pin-code": {
+            "help": "SIM PIN code",
+            "value": "\"1234\""
+        },
+        "apn": {
+            "help": "The APN string to use for this SIM/network, set to 0 if none",
+            "value": "\"jtm2m\""
+        },
+        "username": {
+            "help": "The user name string to use for this APN, set to zero if none",
+            "value": 0
+        },
+        "password": {
+            "help": "The password string to use for this APN, set to 0 if none",
+            "value": 0
         },
         "wifi-ssid": {
             "help": "WiFi SSID",
@@ -34,7 +55,12 @@
     },
     "target_overrides": {
         "*": {
-            "target.features_add": ["COMMON_PAL", "NANOSTACK"],
+            "target.features_add": ["COMMON_PAL", "LWIP"],
+            "lwip.ipv4-enabled": true,
+            "lwip.ethernet-enabled": false,
+            "lwip.ppp-enabled": true,
+            "lwip.tcp-enabled": true,
+            "ppp-cell-iface.apn-lookup": true,
             "mbed-trace.enable": 1,
             "platform.stdio-baud-rate": 115200,
             "platform.stdio-convert-newlines": true,
