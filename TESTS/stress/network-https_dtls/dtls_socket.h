@@ -19,7 +19,7 @@
 #define _MBED_HTTPS_DTLS_SOCKET_H_
 
 /* Change to a number between 1 and 4 to debug the TLS connection */
-#define DEBUG_LEVEL 0
+#define DEBUG_LEVEL 2
 
 #include <string>
 #include <vector>
@@ -40,6 +40,19 @@
 #if DEBUG_LEVEL > 0
 #include "mbedtls/debug.h"
 #endif
+    
+#include "EventQueue.h"
+
+typedef struct {
+    events::EventQueue  *event_q;
+    mbedtls_ssl_context *ssl;
+    uint32_t             int_ms; 
+    uint32_t             fin_ms;
+    int                  timer_id;
+    volatile bool        is_final_expire;
+    bool                 is_intermediate_expire;
+    volatile bool        is_handshake_success;
+} timing_context_t;
     
 /**
  * \brief DTLSSocket a wrapper around UDPSocket for interacting with TLS servers
@@ -80,7 +93,7 @@ public:
         // @todo: free DRBG_PERS ?
     }
 
-    nsapi_error_t connect() {
+    nsapi_error_t connect(timing_context_t *cntx) {
         /* Initialize the flags */
         /*
          * Initialize TLS-related stuf.
@@ -157,8 +170,10 @@ public:
             return _error;
         }        
 
-        mbedtls_ssl_set_timer_cb(&_ssl, NULL, mbedtls_timing_set_delay, mbedtls_timing_get_delay);
-        
+        mbedtls_printf("mbedtls_ssl_set_timer_cb\r\n");
+        cntx->ssl = &_ssl;
+        mbedtls_ssl_set_timer_cb(&_ssl, cntx, mbedtls_timing_set_delay, mbedtls_timing_get_delay);
+#if 0        
        /* Start the handshake, the rest will be done in onReceive() */
         if (_debug) mbedtls_printf("Starting the TLS handshake...\r\n");
         ret = mbedtls_ssl_handshake(&_ssl);
@@ -173,6 +188,31 @@ public:
             }
             return _error;
         }
+#endif// 0
+
+    do {
+            cntx->is_final_expire = false;
+            
+           /* Start the handshake, the rest will be done in onReceive() */
+            if (_debug) mbedtls_printf("STarting the TLS handshake...\r\n");
+            ret = mbedtls_ssl_handshake(&_ssl);
+            mbedtls_printf("TLS handshake finished: %d\r\n", ret);
+            mbedtls_printf("SSL state: %d\r\n", cntx->ssl->state);
+                        
+            if (ret < 0) {
+                if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                    ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+                    print_mbedtls_error("mbedtls_ssl_handshake", ret);
+                    onError(_udpsocket, -1);
+                }
+                else {
+                    _error = ret;
+                }
+                return _error;
+            }
+    } while (/*cntx->is_final_expire*/0);
+
+    MBED_ASSERT(false);
 
         /* It also means the handshake is done, time to print info */
         if (_debug) mbedtls_printf("TLS connection to %s:%d established\r\n", _hostname, _port);
@@ -251,7 +291,7 @@ protected:
             }
         }
 
-        if (_debug) {
+        if (/*_debug*/1) {
             mbedtls_printf("%s:%04d: |%d| %s", basename, line, level, str);
         }
     }
@@ -266,16 +306,16 @@ protected:
         char *buf = new char[buf_size];
         (void) data;
 
-        if (_debug) mbedtls_printf("\nVerifying certificate at depth %d:\n", depth);
+        if (/*_debug*/1) mbedtls_printf("\nVerifying certificate at depth %d:\n", depth);
         mbedtls_x509_crt_info(buf, buf_size - 1, "  ", crt);
-        if (_debug) mbedtls_printf("%s", buf);
+        if (/*_debug*/1) mbedtls_printf("%s", buf);
 
         if (*flags == 0)
-            if (_debug) mbedtls_printf("No verification issue for this certificate\n");
+            if (/*_debug*/1) mbedtls_printf("No verification issue for this certificate\n");
         else
         {
             mbedtls_x509_crt_verify_info(buf, buf_size, "  ! ", *flags);
-            if (_debug) mbedtls_printf("%s\n", buf);
+            if (/*_debug*/1) mbedtls_printf("%s\n", buf);
         }
 
         delete[] buf;
