@@ -49,15 +49,25 @@
             "app.network-interface": "WIFI_ISM43362"
         },
         "NRF52_DK": {
-            "target.macros": ["MBED_TICKLESS"],
-            "app.estimated-application-size": "0x70000"
+            "target.extra_labels_remove": [
+                "SOFTDEVICE_S132_FULL",
+                "SOFTDEVICE_COMMON"
+            ],
+            "target.extra_labels_add": [
+                "SOFTDEVICE_NONE"
+            ],
+            "nordic.uart_0_fifo_size": 2048,
+            "nordic.uart_1_fifo_size": 2048,
+            "app.network-interface": "WIFI_ESP8266",
+            "app.estimated-application-size": "0x50000"
         },
         "NRF52840_DK": {
-            "target.macros": ["MBED_TICKLESS"],
+            "nordic.uart_0_fifo_size": 2048,
+            "nordic.uart_1_fifo_size": 2048,
             "storage-selector.storage": "SPI_FLASH",
             "storage-selector.filesystem": "LITTLE",
-            "app.protagonist-file": "\"elizabeth.h\"",
-            "app.estimated-application-size": "0x70000"
+            "app.network-interface": "WIFI_ESP8266",
+            "app.estimated-application-size": "0x90000"
         },
         "RZ_A1H": {
             "target.macros": ["MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES", "MBEDTLS_TEST_NULL_ENTROPY"]
