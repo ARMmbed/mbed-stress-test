@@ -17,18 +17,6 @@
         },
         "protagonist-file-to-flash": {
             "required": true
-        },
-        "network-interface":{
-            "help": "Options are ETHERNET, WIFI_ESP8266, WIFI_ODIN, WIFI_RTW, WIFI_WIZFI310, WIFI_ISM43362",
-            "value": "ETHERNET"
-        },
-        "wifi-ssid": {
-            "help": "WiFi SSID",
-            "value": "\"SSID\""
-        },
-        "wifi-password": {
-            "help": "WiFi Password",
-            "value": "\"Password\""
         }
     },
     "target_overrides": {
@@ -43,10 +31,17 @@
             "app.protagonist-download": "\"alice.h\"",
             "app.protagonist-file": "\"alice.h\"",
             "app.protagonist-flash": "\"alice.h\"",
-            "app.protagonist-file-to-flash": "\"alice.h\""
+            "app.protagonist-file-to-flash": "\"alice.h\"",
+            "easy-connect.network-interface": "ETHERNET",
+            "easy-connect.network-interface-header": "\"EthernetInterface.h\"",
+            "easy-connect.network-interface-class": "EthernetInterface"
         },
         "DISCO_L475VG_IOT01A": {
-            "app.network-interface": "WIFI_ISM43362"
+            "easy-connect.network-interface": "WIFI",
+            "easy-connect.network-interface-header": "\"ISM43362Interface.h\"",
+            "easy-connect.network-interface-class": "ISM43362Interface",
+            "easy-connect.wifi-ssid": "\"SSID\"",
+            "easy-connect.wifi-password": "\"Password\""
         },
         "NRF52_DK": {
             "target.extra_labels_remove": [
