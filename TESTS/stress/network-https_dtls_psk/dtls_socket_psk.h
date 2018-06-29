@@ -35,10 +35,13 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/error.h"
+#include "mbedtls/timing.h"
 
 #if DEBUG_LEVEL > 0
 #include "mbedtls/debug.h"
 #endif
+    
+#include "EventQueue.h"
 
 const static int PSK_SUITES[] = {
     MBEDTLS_TLS_PSK_WITH_AES_128_CBC_SHA256,
@@ -46,6 +49,17 @@ const static int PSK_SUITES[] = {
     MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8,
     0
 };
+
+typedef struct {
+    events::EventQueue  *event_q;
+    mbedtls_ssl_context *ssl;
+    uint32_t             int_ms; 
+    uint32_t             fin_ms;
+    int                  timer_id;
+    volatile bool        is_final_expire;
+    bool                 is_intermediate_expire;
+    volatile bool        is_handshake_success;
+} timing_context_t;
     
 /**
  * \brief DTLSSocketPsk a wrapper around UDPSocket for interacting with TLS servers
@@ -87,7 +101,7 @@ public:
         // @todo: free DRBG_PERS ?
     }
 
-    nsapi_error_t connect(const unsigned char *psk, size_t psk_len) {
+    nsapi_error_t connect(timing_context_t *cntx, const unsigned char *psk, size_t psk_len) {
         /* Initialize the flags */
         /*
          * Initialize TLS-related stuf.
@@ -146,12 +160,21 @@ public:
         mbedtls_ssl_set_bio(&_ssl, static_cast<void *>(_udpsocket),
                                    ssl_send, ssl_recv, NULL );
 
-/* NEW CODE BELOW FOR PSK */                                   
+/* NEW CODE BELOW FOR PSK */         
+#if 0                          
         if ((ret = mbedtls_ssl_conf_psk(&_ssl_conf, psk, psk_len, NULL, 0)) != 0) {
             print_mbedtls_error("mbedtls_ssl_conf_psk", ret);
             _error = ret;
             return _error;
         }
+#endif         
+        size_t        psk_identity_len = 1;
+        unsigned char psk_identity     = '1'; // 0x31
+        if ((ret = mbedtls_ssl_conf_psk(&_ssl_conf, psk, psk_len, &psk_identity, psk_identity_len)) != 0) {
+            print_mbedtls_error("mbedtls_ssl_conf_psk", ret);
+            _error = ret;
+            return _error;
+        }                
         mbedtls_ssl_conf_ciphersuites(&_ssl_conf, PSK_SUITES);
 /* END NEW CODE FOR PSK */            
         /* Connect to the server */
@@ -171,6 +194,10 @@ public:
             return _error;
         }        
 
+        mbedtls_printf("mbedtls_ssl_set_timer_cb\r\n");
+        cntx->ssl = &_ssl;
+        mbedtls_ssl_set_timer_cb(&_ssl, cntx, mbedtls_timing_set_delay, mbedtls_timing_get_delay);
+#if 0        
        /* Start the handshake, the rest will be done in onReceive() */
         if (_debug) mbedtls_printf("Starting the TLS handshake...\r\n");
         ret = mbedtls_ssl_handshake(&_ssl);
@@ -185,6 +212,31 @@ public:
             }
             return _error;
         }
+#endif// 0
+
+    do {
+            cntx->is_final_expire = false;
+            
+           /* Start the handshake, the rest will be done in onReceive() */
+            if (_debug) mbedtls_printf("STarting the TLS handshake...\r\n");
+            ret = mbedtls_ssl_handshake(&_ssl);
+            mbedtls_printf("TLS handshake finished: %d\r\n", ret);
+            mbedtls_printf("SSL state: %d\r\n", cntx->ssl->state);
+                        
+            if (ret < 0) {
+                if (ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                    ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+                    print_mbedtls_error("mbedtls_ssl_handshake", ret);
+                    onError(_udpsocket, -1);
+                }
+                else {
+                    _error = ret;
+                }
+                return _error;
+            }
+    } while (/*cntx->is_final_expire*/0);
+
+//    MBED_ASSERT(false);
 
         /* It also means the handshake is done, time to print info */
         if (_debug) mbedtls_printf("TLS connection to %s:%d established\r\n", _hostname, _port);
