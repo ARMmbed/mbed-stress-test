@@ -19,7 +19,7 @@
 #define _MBED_HTTPS_DTLS_SOCKET_H_
 
 /* Change to a number between 1 and 4 to debug the TLS connection */
-#define DEBUG_LEVEL 2
+#define DEBUG_LEVEL 0
 
 #include <string>
 #include <vector>
@@ -127,7 +127,10 @@ public:
             _error = ret;
             return _error;
         }
-
+#if 0 // not required as timeout increased in the server side
+        mbedtls_ssl_conf_handshake_timeout(&_ssl_conf, 2000, MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX);        
+#endif         
+        
         mbedtls_ssl_conf_ca_chain(&_ssl_conf, &_cacert, NULL);
         mbedtls_ssl_conf_rng(&_ssl_conf, mbedtls_ctr_drbg_random, &_ctr_drbg);
 
@@ -212,7 +215,7 @@ public:
             }
     } while (/*cntx->is_final_expire*/0);
 
-    MBED_ASSERT(false);
+//    MBED_ASSERT(false);
 
         /* It also means the handshake is done, time to print info */
         if (_debug) mbedtls_printf("TLS connection to %s:%d established\r\n", _hostname, _port);

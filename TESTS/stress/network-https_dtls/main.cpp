@@ -147,10 +147,12 @@ void download(size_t size)
         /* loop until all data has been read from socket */
         do
         {
-            result = mbedtls_ssl_read(dtlssocket->get_ssl_context(), (unsigned char*) receive_buffer, size - 1);
+//            printf("mbedtls_ssl_read: \r\n");
+            
+            result = mbedtls_ssl_read(dtlssocket->get_ssl_context(), (unsigned char*) receive_buffer, size/* - 1*/);
             TEST_ASSERT_MESSAGE((result == MBEDTLS_ERR_SSL_WANT_READ) || (result >= 0), "failed to read ssl");
 
-            printf("result: %d\r\n", result);
+//            printf("+result: %d\r\n", result);
 
             if (result > 0)
             {
@@ -183,7 +185,7 @@ void download(size_t size)
 
 //                receive_buffer[result] = '\0';
 //                printf("%s", receive_buffer);
-                printf("received_bytes: %u\r\n", received_bytes);
+//                printf("received_bytes: %u\r\n", received_bytes);
             }
         }
         while ((result > 0) && (received_bytes < expected_bytes));
@@ -299,10 +301,11 @@ void on_timeout(timing_context_t *cntx)
 
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms)
 {
+#if 0    
     printf("!!mbedtls_timing_set_delay\r\n");
     printf("int_ms: %u\r\n", (unsigned int)int_ms);
     printf("fin_ms: %u\r\n", (unsigned int)fin_ms);
-    
+#endif     
     timing_context_t *cntx = (timing_context_t *)data;
     MBED_ASSERT(cntx != NULL);
 //    MBED_ASSERT(int_ms != 0);
@@ -318,7 +321,7 @@ void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms)
         cntx->timer_id = cntx->event_q->call_in(cntx->int_ms, on_timeout, cntx);
         MBED_ASSERT(cntx->timer_id != 0);
     } else if (fin_ms == 0) {
-        printf("!!clear timer\r\n");
+//        printf("!!clear timer\r\n");
         cntx->int_ms   = 0;
         cntx->fin_ms   = 0;
         
@@ -386,19 +389,19 @@ int mbedtls_timing_get_delay(void *data)
     
     if (cntx->is_final_expire) {
         /* Final delay is passed. */
-        printf("!!mbedtls_timing_get_delay: Final delay is passed\r\n");
+//        printf("!!mbedtls_timing_get_delay: Final delay is passed\r\n");
         
         return 2;
     }
     if (cntx->timer_id == 0){
         /* Cancelled. */
-        printf("!!mbedtls_timing_get_delay: Cancelled\r\n");        
+//        printf("!!mbedtls_timing_get_delay: Cancelled\r\n");        
     
         return -1;
     }
     if (cntx->is_intermediate_expire) {
         /* Only the intermediate delay is passed. */
-        printf("!!mbedtls_timing_get_delay: Only the intermediate delay is passed\r\n");                
+//        printf("!!mbedtls_timing_get_delay: Only the intermediate delay is passed\r\n");                
         
         return 1;
     }
