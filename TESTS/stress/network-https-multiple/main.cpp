@@ -27,7 +27,6 @@
 #include "unity/unity.h"
 #include "greentea-client/test_env.h"
 
-#include "easy-connect.h"
 #include "tls_socket.h"
 
 using namespace utest::v1;
@@ -35,6 +34,8 @@ using namespace utest::v1;
 #ifndef MBED_CONF_APP_DEFAULT_DOWNLOAD_SIZE
 #define MBED_CONF_APP_DEFAULT_DOWNLOAD_SIZE 1024
 #endif
+
+#define THREAD_STACK_SIZE (5 * 1024)
 
 #include MBED_CONF_APP_PROTAGONIST_DOWNLOAD
 #include "certificate_aws_s3.h"
@@ -228,15 +229,20 @@ void download(void)
 
 static control_t setup_network(const size_t call_count)
 {
-    interface = easy_connect(true);
+    interface = NetworkInterface::get_default_instance();
     TEST_ASSERT_NOT_NULL_MESSAGE(interface, "failed to initialize network");
+
+    nsapi_error_t err = interface->connect();
+    TEST_ASSERT_EQUAL(NSAPI_ERROR_OK, err);
+    printf("IP address is '%s'\n", interface->get_ip_address());
+    printf("MAC address is '%s'\n", interface->get_mac_address());
 
     return CaseNext;
 }
 
 static control_t download_1(const size_t call_count)
 {
-    Thread t1;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
@@ -248,8 +254,8 @@ static control_t download_1(const size_t call_count)
 
 static control_t download_2(const size_t call_count)
 {
-    Thread t1;
-    Thread t2;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
@@ -263,9 +269,9 @@ static control_t download_2(const size_t call_count)
 
 static control_t download_3(const size_t call_count)
 {
-    Thread t1;
-    Thread t2;
-    Thread t3;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t3(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
@@ -281,10 +287,10 @@ static control_t download_3(const size_t call_count)
 
 static control_t download_4(const size_t call_count)
 {
-    Thread t1;
-    Thread t2;
-    Thread t3;
-    Thread t4;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t3(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t4(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
@@ -302,11 +308,11 @@ static control_t download_4(const size_t call_count)
 
 static control_t download_5(const size_t call_count)
 {
-    Thread t1;
-    Thread t2;
-    Thread t3;
-    Thread t4;
-    Thread t5;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t3(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t4(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t5(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
