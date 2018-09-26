@@ -27,8 +27,6 @@
 #include "unity/unity.h"
 #include "greentea-client/test_env.h"
 
-#include "easy-connect.h"
-
 #include <string>
 
 using namespace utest::v1;
@@ -206,8 +204,13 @@ void download(void)
 
 static control_t setup_network(const size_t call_count)
 {
-    interface = easy_connect(true);
+    interface = NetworkInterface::get_default_instance();
     TEST_ASSERT_NOT_NULL_MESSAGE(interface, "failed to initialize network");
+
+    nsapi_error_t err = interface->connect();
+    TEST_ASSERT_EQUAL(NSAPI_ERROR_OK, err);
+    printf("IP address is '%s'\n", interface->get_ip_address());
+    printf("MAC address is '%s'\n", interface->get_mac_address());
 
     return CaseNext;
 }

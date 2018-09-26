@@ -16,14 +16,19 @@
 
 #include "mbed.h"
 
-#include "storage-selector/storage-selector.h"
 #include "unity/unity.h"
 
-static FileSystem* fs = filesystem_selector();
+static FileSystem* fs = FileSystem::get_default_instance();
+
+#if COMPONENT_SPIF || COMPONENT_DATAFLASH
+#define MOUNT_POINT "flash"
+#elif COMPONENT_SD
+#define MOUNT_POINT "sd"
+#endif
 
 void mbed_stress_test_format_file(void)
 {
-    BlockDevice* bd = storage_selector();
+    BlockDevice* bd = BlockDevice::get_default_instance();
 
     int result = fs->reformat(bd);
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "could not format block device");
@@ -32,7 +37,7 @@ void mbed_stress_test_format_file(void)
 void mbed_stress_test_write_file(const char* file, size_t offset, const unsigned char* data, size_t data_length, size_t block_size)
 {
     char filename[255] = { 0 };
-    snprintf(filename, 255, "/" MBED_CONF_STORAGE_SELECTOR_MOUNT_POINT "/%s", file);
+    snprintf(filename, 255, "/" MOUNT_POINT "/%s", file);
 
     FILE* output = fopen(filename, "w+");
     TEST_ASSERT_NOT_NULL_MESSAGE(output, "could not open file");
@@ -64,7 +69,7 @@ void mbed_stress_test_write_file(const char* file, size_t offset, const unsigned
 void mbed_stress_test_compare_file(const char* file, size_t offset, const unsigned char* data, size_t data_length, size_t block_size)
 {
     char filename[255] = { 0 };
-    snprintf(filename, 255, "/" MBED_CONF_STORAGE_SELECTOR_MOUNT_POINT "/%s", file);
+    snprintf(filename, 255, "/" MOUNT_POINT "/%s", file);
 
     FILE* output = fopen(filename, "r");
     TEST_ASSERT_NOT_NULL_MESSAGE(output, "could not open file");
@@ -102,7 +107,7 @@ void mbed_stress_test_compare_file(const char* file, size_t offset, const unsign
 size_t mbed_stress_test_read_file(const char* file, size_t offset, unsigned char* buffer, size_t buffer_length)
 {
     char filename[255] = { 0 };
-    snprintf(filename, 255, "/" MBED_CONF_STORAGE_SELECTOR_MOUNT_POINT "/%s", file);
+    snprintf(filename, 255, "/" MOUNT_POINT "/%s", file);
 
     FILE* output = fopen(filename, "r");
     TEST_ASSERT_NOT_NULL_MESSAGE(output, "could not open file");
