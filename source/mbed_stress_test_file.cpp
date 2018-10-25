@@ -18,8 +18,6 @@
 
 #include "unity/unity.h"
 
-static FileSystem* fs = FileSystem::get_default_instance();
-
 #if COMPONENT_SPIF || COMPONENT_DATAFLASH
 #define MOUNT_POINT "flash"
 #elif COMPONENT_SD
@@ -29,6 +27,7 @@ static FileSystem* fs = FileSystem::get_default_instance();
 void mbed_stress_test_format_file(void)
 {
     BlockDevice* bd = BlockDevice::get_default_instance();
+    FileSystem* fs = FileSystem::get_default_instance();
 
     int result = fs->reformat(bd);
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "could not format block device");
