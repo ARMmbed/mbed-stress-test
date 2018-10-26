@@ -73,7 +73,7 @@ void mbed_stress_test_write_flash(size_t offset, const unsigned char* buffer, si
     size_t index = 0;
     while (index < buffer_length)
     {
-        TEST_ASSERT_MESSAGE(start_address + index + page_size <= flash_size, "address and data out of bounds");
+        TEST_ASSERT_MESSAGE((start_address + index + page_size) <= (flash_start + flash_size), "address and data out of bounds");
 
         int result = flash.program(&buffer[index], start_address + index, page_size);
 
