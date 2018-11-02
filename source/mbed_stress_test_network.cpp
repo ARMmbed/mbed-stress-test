@@ -17,15 +17,16 @@
 #include "mbed.h"
 #include "unity/unity.h"
 #include <inttypes.h>
+#include <string>
+#include "TLSSocket.h"
 
-#include "tls_socket.h"
 #include "certificate_aws_s3.h"
 
 static volatile bool event_fired = false;
 #define BUFFER_SIZE 1024
 #define MAX_RETRIES 3
 
-const char request_template[] = 
+const char request_template[] =
     "GET /firmware/%s.txt HTTP/1.1\n"
     "Host: lootbox.s3.dualstack.us-west-2.amazonaws.com\n"
     "Range: bytes=%d-%d\n"
@@ -39,21 +40,19 @@ static void socket_event(void)
 size_t mbed_stress_test_download(NetworkInterface* interface, const char* filename, size_t offset, char* data, size_t data_length, bool tls)
 {
     int result = -1;
+    Socket* socket = NULL;
 
-    TCPSocket* tcpsocket = NULL;
-    TLSSocket* tlssocket = NULL;
+    if (tls) {
 
-    if (tls)
-    {
         /* setup TLS socket */
-        tlssocket = new TLSSocket(interface, "lootbox.s3.dualstack.us-west-2.amazonaws.com", 443, SSL_CA_PEM);
+        TLSSocket* tlssocket = new TLSSocket(interface);
         TEST_ASSERT_NOT_NULL_MESSAGE(tlssocket, "failed to instantiate tlssocket");
 
-        tlssocket->set_debug(true);
-        printf("debug mode set\r\n");
+        result = tlssocket->set_root_ca_cert(SSL_CA_PEM);
+        TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to set root CA");
 
         for (int tries = 0; tries < MAX_RETRIES; tries++) {
-            result = tlssocket->connect();
+            result = tlssocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 443);
             if (result == 0) {
                 break;
             }
@@ -61,14 +60,13 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
         }
         TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to connect");
 
-        tcpsocket = tlssocket->get_tcp_socket();
-        TEST_ASSERT_NOT_NULL_MESSAGE(tcpsocket, "failed to get underlying TCPSocket");        
-    }
-    else
-    {
+        socket = static_cast<Socket*>(tlssocket);
+
+    } else {
+
         /* setup TCP socket */
-        tcpsocket = new TCPSocket(interface);
-        TEST_ASSERT_NOT_NULL_MESSAGE(tcpsocket, "failed to create TCPSocket");        
+        TCPSocket* tcpsocket = new TCPSocket(interface);
+        TEST_ASSERT_NOT_NULL_MESSAGE(tcpsocket, "failed to create TCPSocket");
 
         for (int tries = 0; tries < MAX_RETRIES; tries++) {
             result = tcpsocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 80);
@@ -78,12 +76,14 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
             printf("connection failed. retry %d of %d\r\n", tries, MAX_RETRIES);
         }
         TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to connect");
+
+        socket = static_cast<Socket*>(tcpsocket);
     }
 
-    tcpsocket->set_blocking(false);
+    socket->set_blocking(false);
     printf("non-blocking mode set\r\n");
 
-    tcpsocket->sigio(socket_event);
+    socket->sigio(socket_event);
     printf("registered callback function\r\n");
 
 
@@ -95,21 +95,9 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
 
     printf("request: %s[end]\r\n", request);
 
-
     /* send request to server */
-    if (tls)
-    {
-        result = mbedtls_ssl_write(tlssocket->get_ssl_context(), (const unsigned char*) request, request_size);
-        TEST_ASSERT_MESSAGE(result != MBEDTLS_ERR_SSL_WANT_READ, "failed to write ssl");
-        TEST_ASSERT_MESSAGE(result != MBEDTLS_ERR_SSL_WANT_WRITE, "failed to write ssl");
-        TEST_ASSERT_EQUAL_INT_MESSAGE(request_size, result, "failed to write ssl");        
-    }
-    else
-    {
-        result = tcpsocket->send(request, request_size);
-        TEST_ASSERT_EQUAL_INT_MESSAGE(request_size, result, "failed to write ssl");        
-    }
-
+    result = socket->send(request, request_size);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(request_size, result, "failed to send HTTP request");
 
     /* read response */
     size_t expected_bytes = data_length;
@@ -130,16 +118,8 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
         /* loop until all data has been read from socket */
         do
         {
-            if (tls)
-            {
-                result = mbedtls_ssl_read(tlssocket->get_ssl_context(), (unsigned char*) &data[received_bytes], data_length - received_bytes);
-                TEST_ASSERT_MESSAGE((result == MBEDTLS_ERR_SSL_WANT_READ) || (result >= 0), "failed to read ssl");                
-            }
-            else
-            {
-                result = tcpsocket->recv(&data[received_bytes], data_length - received_bytes);
-                TEST_ASSERT_MESSAGE((result == NSAPI_ERROR_WOULD_BLOCK) || (result >= 0), "failed to read socket");
-            }
+            result = socket->recv(&data[received_bytes], data_length - received_bytes);
+            TEST_ASSERT_MESSAGE((result == NSAPI_ERROR_WOULD_BLOCK) || (result >= 0), "failed to read socket");
 //            printf("result: %d\r\n", result);
 
             if (result > 0)
@@ -167,24 +147,10 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
             }
         }
         while ((result > 0) && (received_bytes < expected_bytes));
-
-        if (result == MBEDTLS_ERR_SSL_WANT_WRITE)
-        {
-            printf("MBEDTLS_ERR_SSL_WANT_WRITE: %d\r\n", MBEDTLS_ERR_SSL_WANT_WRITE);
-            break;
-        }
     }
 
     delete[] request;
-
-    if (tls)
-    {
-        delete tlssocket;
-    }
-    else
-    {
-        delete tcpsocket;
-    }
+    delete socket;
 
     printf("done\r\n");
 
