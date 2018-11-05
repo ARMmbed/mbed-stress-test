@@ -94,7 +94,7 @@ void download(void)
         }
 
         printf("%lu: connection failed: %d. retry %d of %d\r\n", thread_id, result, tries, MAX_RETRIES);
-        Thread::wait(1000);
+        ThisThread::sleep_for(1000);
     }
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to connect");
 
@@ -147,7 +147,7 @@ void download(void)
     while (received_bytes < expected_bytes) {
         /* wait for async event */
         while(!event_fired[thread_id]) {
-            Thread::yield();
+            ThisThread::yield();
         }
         event_fired[thread_id] = false;
 
