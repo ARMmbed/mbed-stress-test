@@ -18,7 +18,7 @@
 
 #include "unity/unity.h"
 
-#if COMPONENT_SPIF || COMPONENT_DATAFLASH
+#if COMPONENT_SPIF || COMPONENT_QSPIF || COMPONENT_DATAFLASH
 #define MOUNT_POINT "flash"
 #elif COMPONENT_SD
 #define MOUNT_POINT "sd"

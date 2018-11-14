@@ -26,10 +26,15 @@
 #include "utest/utest.h"
 #include "unity/unity.h"
 #include "greentea-client/test_env.h"
+#include "mbed_trace.h"
 
 #include <string>
 
 using namespace utest::v1;
+
+#define TRACE_GROUP  "STRS"
+
+#define THREAD_STACK_SIZE MBED_CONF_APP_MAIN_STACK_SIZE
 
 #ifndef MBED_CONF_APP_DEFAULT_DOWNLOAD_SIZE
 #define MBED_CONF_APP_DEFAULT_DOWNLOAD_SIZE 1024
@@ -93,13 +98,13 @@ void download(void)
             break;
         }
 
-        printf("%lu: connection failed: %d. retry %d of %d\r\n", thread_id, result, tries, MAX_RETRIES);
+        tr_debug("%lu: connection failed: %d. retry %d of %d", thread_id, result, tries, MAX_RETRIES);
         ThisThread::sleep_for(1000);
     }
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to connect");
 
     tcpsocket->set_blocking(false);
-    printf("%lu: non-blocking mode set\r\n", thread_id);
+    tr_debug("%lu: non-blocking mode set", thread_id);
 
     if (thread_id == 0) {
         tcpsocket->sigio(socket_event_0);
@@ -114,7 +119,7 @@ void download(void)
     } else {
         TEST_ASSERT_MESSAGE(0, "wrong thread id");
     }
-    printf("%lu: registered callback function\r\n", thread_id);
+    tr_debug("%lu: registered callback function", thread_id);
 
     /* setup request */
     /* -1 to remove h from .h in header file name */
@@ -126,7 +131,7 @@ void download(void)
     memcpy(&request[strlen(part1)], filename, strlen(filename) - 1);
     memcpy(&request[strlen(part1) + strlen(filename) - 1], part2, strlen(part2));
 
-    printf("%lu: request: %s[end]\r\n", thread_id, request);
+    tr_debug("%lu: request: %s[end]", thread_id, request);
 
 
     /* send request to server */
@@ -156,7 +161,7 @@ void download(void)
             result = tcpsocket->recv(receive_buffer, size);
             TEST_ASSERT_MESSAGE((result == NSAPI_ERROR_WOULD_BLOCK) || (result >= 0), "failed to read socket");
 
-//            printf("result: %d\r\n", result);
+//            tr_debug("result: %d", result);
 
             if (result > 0) {
 
@@ -188,8 +193,8 @@ void download(void)
                 }
 
 //                receive_buffer[result] = '\0';
-//                printf("%s", receive_buffer);
-                printf("%lu: received_bytes: %u\r\n", thread_id, received_bytes);
+//                tr_debug("%s", receive_buffer);
+                tr_debug("%lu: received_bytes: %u", thread_id, received_bytes);
             }
         }
         while ((result > 0) && (received_bytes < expected_bytes));
@@ -199,7 +204,7 @@ void download(void)
     delete tcpsocket;
     delete[] receive_buffer;
 
-    printf("%lu: done\r\n", thread_id);
+    tr_debug("%lu: done", thread_id);
 }
 
 static control_t setup_network(const size_t call_count)
@@ -207,7 +212,19 @@ static control_t setup_network(const size_t call_count)
     interface = NetworkInterface::get_default_instance();
     TEST_ASSERT_NOT_NULL_MESSAGE(interface, "failed to initialize network");
 
-    nsapi_error_t err = interface->connect();
+    nsapi_error_t err = -1;
+
+    for (int tries = 0; tries < MAX_RETRIES; tries++) {
+        err = interface->connect();
+
+        if (err == NSAPI_ERROR_OK) {
+            break;
+        } else {
+
+            printf("Error connecting to network. Retrying %d of %d\r\n", tries, MAX_RETRIES);
+        }
+    }
+
     TEST_ASSERT_EQUAL(NSAPI_ERROR_OK, err);
     printf("IP address is '%s'\n", interface->get_ip_address());
     printf("MAC address is '%s'\n", interface->get_mac_address());
@@ -215,10 +232,9 @@ static control_t setup_network(const size_t call_count)
     return CaseNext;
 }
 
-
 static control_t download_1(const size_t call_count)
 {
-    Thread t1;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
@@ -230,8 +246,8 @@ static control_t download_1(const size_t call_count)
 
 static control_t download_2(const size_t call_count)
 {
-    Thread t1;
-    Thread t2;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
@@ -245,9 +261,9 @@ static control_t download_2(const size_t call_count)
 
 static control_t download_3(const size_t call_count)
 {
-    Thread t1;
-    Thread t2;
-    Thread t3;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t3(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
@@ -263,10 +279,10 @@ static control_t download_3(const size_t call_count)
 
 static control_t download_4(const size_t call_count)
 {
-    Thread t1;
-    Thread t2;
-    Thread t3;
-    Thread t4;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t3(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t4(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
@@ -284,11 +300,11 @@ static control_t download_4(const size_t call_count)
 
 static control_t download_5(const size_t call_count)
 {
-    Thread t1;
-    Thread t2;
-    Thread t3;
-    Thread t4;
-    Thread t5;
+    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t3(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t4(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread t5(osPriorityNormal, THREAD_STACK_SIZE);
 
     shared_thread_counter = 0;
     t1.start(download);
@@ -323,7 +339,24 @@ Case cases[] = {
 
 Specification specification(greentea_setup, cases);
 
+rtos::Mutex trace_mutex;
+
+void mbed_trace_helper_mutex_wait(void)
+{
+    trace_mutex.lock();
+}
+
+void mbed_trace_helper_mutex_release(void)
+{
+    trace_mutex.unlock();
+}
+
 int main()
 {
+    mbed_trace_init();
+    mbed_trace_mutex_wait_function_set(mbed_trace_helper_mutex_wait);
+    mbed_trace_mutex_release_function_set(mbed_trace_helper_mutex_release);
+    mbed_trace_config_set(TRACE_ACTIVE_LEVEL_ALL|TRACE_MODE_COLOR);
+
     return !Harness::run(specification);
 }

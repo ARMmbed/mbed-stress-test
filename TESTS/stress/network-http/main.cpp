@@ -164,18 +164,24 @@ static control_t setup_network(const size_t call_count)
     interface = NetworkInterface::get_default_instance();
     TEST_ASSERT_NOT_NULL_MESSAGE(interface, "failed to initialize network");
 
-    nsapi_error_t err = interface->connect();
+    nsapi_error_t err = -1;
+
+    for (int tries = 0; tries < MAX_RETRIES; tries++) {
+        err = interface->connect();
+
+        if (err == NSAPI_ERROR_OK) {
+            break;
+        } else {
+
+            printf("Error connecting to network. Retrying %d of %d\r\n", tries, MAX_RETRIES);
+        }
+    }
+
     TEST_ASSERT_EQUAL(NSAPI_ERROR_OK, err);
     printf("IP address is '%s'\n", interface->get_ip_address());
     printf("MAC address is '%s'\n", interface->get_mac_address());
 
     return CaseNext;
-}
-
-Thread thread;
-
-void download_thread(void)
-{
 }
 
 static control_t download_1k(const size_t call_count)

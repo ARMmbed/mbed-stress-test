@@ -213,12 +213,12 @@ static control_t test_buffer_32k(const size_t call_count)
 
 Case cases[] = {
     Case("Setup", test_setup),
-    Case("Buffer 32k", test_buffer_32k),
-    Case("Buffer 16k", test_buffer_16k),
-    Case("Buffer  8k", test_buffer_8k),
+    Case("Buffer  1k", test_buffer_1k),
+    Case("Buffer  2k", test_buffer_2k),
     Case("Buffer  4k", test_buffer_4k),
-//    Case("Buffer  2k", test_buffer_2k),
-//    Case("Buffer  1k", test_buffer_1k),
+    Case("Buffer  8k", test_buffer_8k),
+    Case("Buffer 16k", test_buffer_16k),
+    Case("Buffer 32k", test_buffer_32k),
 };
 
 #else
