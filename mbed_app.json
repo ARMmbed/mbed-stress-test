@@ -17,15 +17,6 @@
         },
         "protagonist-file-to-flash": {
             "required": true
-        },
-        "default-wifi-ssid": {
-          "value": "\"\""
-        },
-        "default-wifi-password": {
-          "value": "\"\""
-        },
-        "default-wifi-security": {
-          "value": "\"WPA2\""
         }
     },
     "target_overrides": {
@@ -33,6 +24,10 @@
             "target.features_add": ["STORAGE"],
             "platform.stdio-baud-rate": 115200,
             "platform.stdio-convert-newlines": true,
+            "mbed-trace.enable": 1,
+            "nsapi.default-wifi-ssid": "\"\"",
+            "nsapi.default-wifi-password": "\"\"",
+            "nsapi.default-wifi-security": "WPA2",
             "app.estimated-application-size": "0x60000",
             "app.protagonist-download": "\"alice.h\"",
             "app.protagonist-file": "\"alice.h\"",
@@ -40,7 +35,8 @@
             "app.protagonist-file-to-flash": "\"alice.h\""
         },
         "DISCO_L475VG_IOT01A": {
-            "target.components_add": ["SPIF"]
+            "target.network-default-interface-type": "WIFI",
+            "target.components_add": ["QSPIF"]
         },
         "K64F": {
             "target.network-default-interface-type": "ETHERNET",
