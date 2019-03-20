@@ -37,8 +37,12 @@ using namespace utest::v1;
 static control_t scan(const size_t call_count)
 {
     WiFiInterface* interface = WiFiInterface::get_default_instance();
+    TEST_ASSERT_NOT_NULL_MESSAGE(interface, "failed to instantiate WiFi");
+
+    printf("WiFi MAC: %s\r\n", interface->get_mac_address());
 
     WiFiAccessPoint* aps = new WiFiAccessPoint[10];
+    TEST_ASSERT_NOT_NULL_MESSAGE(aps, "failed to allocate access point array");
 
     int count = interface->scan(aps, 10);
 

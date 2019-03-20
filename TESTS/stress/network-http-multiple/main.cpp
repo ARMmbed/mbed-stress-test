@@ -34,10 +34,14 @@ using namespace utest::v1;
 
 #define TRACE_GROUP  "STRS"
 
-#define THREAD_STACK_SIZE MBED_CONF_APP_MAIN_STACK_SIZE
-
 #ifndef MBED_CONF_APP_DEFAULT_DOWNLOAD_SIZE
 #define MBED_CONF_APP_DEFAULT_DOWNLOAD_SIZE 1024
+#endif
+
+#ifdef MBED_CONF_APP_MAIN_STACK_SIZE
+#define THREAD_STACK_SIZE MBED_CONF_APP_MAIN_STACK_SIZE
+#else
+#define THREAD_STACK_SIZE (5 * 1024)
 #endif
 
 #include MBED_CONF_APP_PROTAGONIST_DOWNLOAD
@@ -87,8 +91,11 @@ void download(void)
     uint32_t thread_id = core_util_atomic_incr_u32(&shared_thread_counter, 1) - 1;
 
     /* setup TCP socket */
-    TCPSocket* tcpsocket = new TCPSocket(interface);
+    TCPSocket* tcpsocket = new TCPSocket();
     TEST_ASSERT_NOT_NULL_MESSAGE(tcpsocket, "failed to instantiate tlssocket");
+
+    result = tcpsocket->open(interface);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to open socket");
 
     for (int tries = 0; tries < MAX_RETRIES; tries++) {
         result = tcpsocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 80);
@@ -234,90 +241,115 @@ static control_t setup_network(const size_t call_count)
 
 static control_t download_1(const size_t call_count)
 {
-    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread* t1 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t1, "failed to allocate thread 1");
 
     shared_thread_counter = 0;
-    t1.start(download);
+    t1->start(download);
 
-    t1.join();
+    t1->join();
 
     return CaseNext;
 }
 
 static control_t download_2(const size_t call_count)
 {
-    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread* t1 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t1, "failed to allocate thread 1");
+
+    Thread* t2 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t2, "failed to allocate thread 2");
 
     shared_thread_counter = 0;
-    t1.start(download);
-    t2.start(download);
+    t1->start(download);
+    t2->start(download);
 
-    t1.join();
-    t2.join();
+    t1->join();
+    t2->join();
 
     return CaseNext;
 }
 
 static control_t download_3(const size_t call_count)
 {
-    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t3(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread* t1 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t1, "failed to allocate thread 1");
+
+    Thread* t2 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t2, "failed to allocate thread 2");
+
+    Thread* t3 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t3, "failed to allocate thread 3");
 
     shared_thread_counter = 0;
-    t1.start(download);
-    t2.start(download);
-    t3.start(download);
+    t1->start(download);
+    t2->start(download);
+    t3->start(download);
 
-    t1.join();
-    t2.join();
-    t3.join();
+    t1->join();
+    t2->join();
+    t3->join();
 
     return CaseNext;
 }
 
 static control_t download_4(const size_t call_count)
 {
-    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t3(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t4(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread* t1 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t1, "failed to allocate thread 1");
+
+    Thread* t2 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t2, "failed to allocate thread 2");
+
+    Thread* t3 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t3, "failed to allocate thread 3");
+
+    Thread* t4 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t4, "failed to allocate thread 4");
 
     shared_thread_counter = 0;
-    t1.start(download);
-    t2.start(download);
-    t3.start(download);
-    t4.start(download);
+    t1->start(download);
+    t2->start(download);
+    t3->start(download);
+    t4->start(download);
 
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
+    t1->join();
+    t2->join();
+    t3->join();
+    t4->join();
 
     return CaseNext;
 }
 
 static control_t download_5(const size_t call_count)
 {
-    Thread t1(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t2(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t3(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t4(osPriorityNormal, THREAD_STACK_SIZE);
-    Thread t5(osPriorityNormal, THREAD_STACK_SIZE);
+    Thread* t1 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t1, "failed to allocate thread 1");
+
+    Thread* t2 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t2, "failed to allocate thread 2");
+
+    Thread* t3 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t3, "failed to allocate thread 3");
+
+    Thread* t4 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t4, "failed to allocate thread 4");
+
+    Thread* t5 = new Thread(osPriorityNormal, THREAD_STACK_SIZE);
+    TEST_ASSERT_NOT_NULL_MESSAGE(t5, "failed to allocate thread 5");
 
     shared_thread_counter = 0;
-    t1.start(download);
-    t2.start(download);
-    t3.start(download);
-    t4.start(download);
-    t5.start(download);
+    t1->start(download);
+    t2->start(download);
+    t3->start(download);
+    t4->start(download);
+    t5->start(download);
 
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
-    t5.join();
+    t1->join();
+    t2->join();
+    t3->join();
+    t4->join();
+    t5->join();
 
     return CaseNext;
 }

@@ -54,8 +54,11 @@ void download(size_t size)
     int result = -1;
 
     /* setup TLS socket */
-    TLSSocket* socket = new TLSSocket(interface);
+    TLSSocket* socket = new TLSSocket();
     TEST_ASSERT_NOT_NULL_MESSAGE(socket, "failed to instantiate socket");
+
+    result = socket->open(interface);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to open socket");
 
     result = socket->set_root_ca_cert(SSL_CA_PEM);
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to set root CA");

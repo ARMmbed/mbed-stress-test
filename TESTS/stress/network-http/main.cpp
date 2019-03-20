@@ -54,8 +54,11 @@ void download(size_t size)
     int result = -1;
 
     /* setup TCP socket */
-    TCPSocket* tcpsocket = new TCPSocket(interface);
+    TCPSocket* tcpsocket = new TCPSocket();
     TEST_ASSERT_NOT_NULL_MESSAGE(tcpsocket, "failed to instantiate tlssocket");
+
+    result = tcpsocket->open(interface);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to open socket");
 
     for (int tries = 0; tries < MAX_RETRIES; tries++) {
         result = tcpsocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 80);
