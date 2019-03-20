@@ -22,6 +22,8 @@
 #define MOUNT_POINT "flash"
 #elif COMPONENT_SD
 #define MOUNT_POINT "sd"
+#else
+#error "Storage not defined for filesystem test."
 #endif
 
 void mbed_stress_test_format_file(void)
