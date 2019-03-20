@@ -44,9 +44,14 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
 
     if (tls) {
 
+        printf("use TLSSocket\r\n");
+
         /* setup TLS socket */
-        TLSSocket* tlssocket = new TLSSocket(interface);
+        TLSSocket* tlssocket = new TLSSocket();
         TEST_ASSERT_NOT_NULL_MESSAGE(tlssocket, "failed to instantiate tlssocket");
+
+        result = tlssocket->open(interface);
+        TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to open socket");
 
         result = tlssocket->set_root_ca_cert(SSL_CA_PEM);
         TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to set root CA");
@@ -65,8 +70,11 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
     } else {
 
         /* setup TCP socket */
-        TCPSocket* tcpsocket = new TCPSocket(interface);
+        TCPSocket* tcpsocket = new TCPSocket();
         TEST_ASSERT_NOT_NULL_MESSAGE(tcpsocket, "failed to create TCPSocket");
+
+        result = tcpsocket->open(interface);
+        TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to open socket");
 
         for (int tries = 0; tries < MAX_RETRIES; tries++) {
             result = tcpsocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 80);
