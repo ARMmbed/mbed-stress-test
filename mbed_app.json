@@ -1,6 +1,5 @@
 {
     "macros": [
-        "MBED_CONF_APP_MAIN_STACK_SIZE=10240"
     ],
     "config": {
         "estimated-application-size": {
