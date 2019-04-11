@@ -178,7 +178,7 @@ static control_t test_buffer_64k(const size_t call_count)
 
 utest::v1::status_t greentea_setup(const size_t number_of_cases)
 {
-    GREENTEA_SETUP(30*60, "default_auto");
+    GREENTEA_SETUP(10*60, "default_auto");
     return greentea_test_setup_handler(number_of_cases);
 }
 
@@ -198,8 +198,8 @@ Case cases[] = {
     Case("story  2k", test_buffer_2k),
     Case("story  4k", test_buffer_4k),
     Case("story  8k", test_buffer_8k),
-    Case("story 16k", test_buffer_16k),
-    Case("story 32k", test_buffer_32k),
+//    Case("story 16k", test_buffer_16k),
+//    Case("story 32k", test_buffer_32k),
 };
 
 Specification specification(greentea_setup, cases);

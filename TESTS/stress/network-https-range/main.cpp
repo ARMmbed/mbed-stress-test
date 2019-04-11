@@ -140,18 +140,18 @@ static control_t download_32k(const size_t call_count)
 
 utest::v1::status_t greentea_setup(const size_t number_of_cases)
 {
-    GREENTEA_SETUP(30*60, "default_auto");
+    GREENTEA_SETUP(10*60, "default_auto");
     return greentea_test_setup_handler(number_of_cases);
 }
 
 Case cases[] = {
     Case("Setup network", setup_network),
-    Case("Download  1k", download_1k),
-    Case("Download  2k", download_2k),
-    Case("Download  4k", download_4k),
+//    Case("Download  1k", download_1k),
+//    Case("Download  2k", download_2k),
+//    Case("Download  4k", download_4k),
     Case("Download  8k", download_8k),
-    Case("Download 16k", download_16k),
-    Case("Download 32k", download_32k),
+//    Case("Download 16k", download_16k),
+//    Case("Download 32k", download_32k),
 };
 
 Specification specification(greentea_setup, cases);

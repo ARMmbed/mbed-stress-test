@@ -217,8 +217,8 @@ Case cases[] = {
     Case("Buffer  2k", test_buffer_2k),
     Case("Buffer  4k", test_buffer_4k),
     Case("Buffer  8k", test_buffer_8k),
-    Case("Buffer 16k", test_buffer_16k),
-    Case("Buffer 32k", test_buffer_32k),
+//    Case("Buffer 16k", test_buffer_16k),
+//    Case("Buffer 32k", test_buffer_32k),
 };
 
 #else
@@ -236,7 +236,7 @@ Case cases[] = {
 
 utest::v1::status_t greentea_setup(const size_t number_of_cases)
 {
-    GREENTEA_SETUP(120*60, "default_auto");
+    GREENTEA_SETUP(10*60, "default_auto");
 
     return greentea_test_setup_handler(number_of_cases);
 }

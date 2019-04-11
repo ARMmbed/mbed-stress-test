@@ -356,7 +356,7 @@ static control_t download_5(const size_t call_count)
 
 utest::v1::status_t greentea_setup(const size_t number_of_cases)
 {
-    GREENTEA_SETUP(30*60, "default_auto");
+    GREENTEA_SETUP(10*60, "default_auto");
     return greentea_test_setup_handler(number_of_cases);
 }
 
@@ -364,7 +364,7 @@ Case cases[] = {
     Case("Setup network", setup_network),
     Case("Download 1 thread",  download_1),
     Case("Download 2 threads", download_2),
-    Case("Download 3 threads", download_3),
+//    Case("Download 3 threads", download_3),
 //    Case("Download 4 threads", download_4),
 //    Case("Download 5 threads", download_5),
 };
