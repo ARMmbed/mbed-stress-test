@@ -17,7 +17,7 @@ raas_timeout = 1200
 // Test combinations, for each listed target, each toolchain is build and tested on RaaS instance.
 targets = [
     "K64F":           ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "eeva.mbedcloudtesting.com"],
-//    "NUCLEO_F429ZI":  ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "ruka.mbedcloudtesting.com"],
+    "NUCLEO_F429ZI":  ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "ruka.mbedcloudtesting.com"],
 ]
 
 // Map toolchains to compiler labels to find suitable node on Jenkins.
