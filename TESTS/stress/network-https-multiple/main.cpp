@@ -21,6 +21,12 @@
  * a description of the individual test case.
  */
 
+#define WIFI 2
+#if !defined(MBED_CONF_TARGET_NETWORK_DEFAULT_INTERFACE_TYPE) || \
+    (MBED_CONF_TARGET_NETWORK_DEFAULT_INTERFACE_TYPE == WIFI && !defined(MBED_CONF_NSAPI_DEFAULT_WIFI_SSID))
+#error [NOT_SUPPORTED] No network configuration found for this target.
+#endif
+
 #include "mbed.h"
 
 #include "utest/utest.h"

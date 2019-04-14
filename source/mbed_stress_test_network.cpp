@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#define WIFI 2
+#if defined(MBED_CONF_TARGET_NETWORK_DEFAULT_INTERFACE_TYPE) || \
+    (MBED_CONF_TARGET_NETWORK_DEFAULT_INTERFACE_TYPE == WIFI && defined(MBED_CONF_NSAPI_DEFAULT_WIFI_SSID))
+
 #include "mbed.h"
 #include "unity/unity.h"
 #include <inttypes.h>
@@ -164,3 +168,5 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
 
     return received_bytes;
 }
+
+#endif

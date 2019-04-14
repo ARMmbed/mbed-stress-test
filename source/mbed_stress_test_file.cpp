@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-#include "mbed.h"
-
-#include "unity/unity.h"
-
 #if COMPONENT_SPIF || COMPONENT_QSPIF || COMPONENT_DATAFLASH
 #define MOUNT_POINT "flash"
 #elif COMPONENT_SD
 #define MOUNT_POINT "sd"
 #else
-#error "Storage not defined for filesystem test."
+#warning "Storage not defined for filesystem test."
 #endif
+
+#if defined(MOUNT_POINT)
+
+#include "mbed.h"
+
+#include "unity/unity.h"
 
 void mbed_stress_test_format_file(void)
 {
@@ -123,3 +125,5 @@ size_t mbed_stress_test_read_file(const char* file, size_t offset, unsigned char
 
     return read;
 }
+
+#endif

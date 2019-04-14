@@ -21,6 +21,14 @@
  * a description of the individual test case.
  */
 
+#if !DEVICE_FLASH
+#error [NOT_SUPPORTED] Flash API not supported for this target.
+#endif
+
+#if !(COMPONENT_SPIF || COMPONENT_QSPIF || COMPONENT_DATAFLASH || COMPONENT_SD)
+#error [NOT_SUPPORTED] Storage not supported for this target.
+#endif
+
 #include "mbed.h"
 
 #include "utest/utest.h"
@@ -28,8 +36,6 @@
 #include "greentea-client/test_env.h"
 
 using namespace utest::v1;
-
-#if DEVICE_FLASH
 
 #include "mbed_stress_test_file.h"
 #include "mbed_stress_test_flash.h"
@@ -220,19 +226,6 @@ Case cases[] = {
 //    Case("Buffer 16k", test_buffer_16k),
 //    Case("Buffer 32k", test_buffer_32k),
 };
-
-#else
-#warning File-to-Flash test not supported on this target
-
-void dummy_test(void)
-{
-}
-
-Case cases[] = {
-    Case("Dummy test", dummy_test)
-};
-
-#endif /* DEVICE_FLASH */
 
 utest::v1::status_t greentea_setup(const size_t number_of_cases)
 {
