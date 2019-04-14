@@ -59,6 +59,14 @@
             "target.components_add": ["SPIF"],
             "app.estimated-application-size": "0x90000"
         },
+        "NUCLEO_F429ZI": {
+            "target.network-default-interface-type": "ETHERNET",
+            "target.components_add": ["SD"],
+            "sd.SPI_MOSI": "PC_12",
+            "sd.SPI_MISO": "PC_11",
+            "sd.SPI_CLK": "PC_10",
+            "sd.SPI_CS": "PA_15"
+        },
         "RZ_A1H": {
             "target.macros": [
                 "MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES",
