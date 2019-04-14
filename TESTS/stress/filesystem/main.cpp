@@ -21,6 +21,10 @@
  * a description of the individual test case.
  */
 
+#if !(COMPONENT_SPIF || COMPONENT_QSPIF || COMPONENT_DATAFLASH || COMPONENT_SD)
+#error [NOT_SUPPORTED] Storage not supported for this target.
+#endif
+
 #include "mbed.h"
 
 #include "utest/utest.h"

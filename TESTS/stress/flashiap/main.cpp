@@ -21,6 +21,10 @@
  * a description of the individual test case.
  */
 
+#if !DEVICE_FLASH
+#error [NOT_SUPPORTED] Flash API not supported for this target.
+#endif
+
 #include "mbed.h"
 
 #include "utest/utest.h"
@@ -28,8 +32,6 @@
 #include "greentea-client/test_env.h"
 
 using namespace utest::v1;
-
-#if DEVICE_FLASH
 
 #include "mbed_stress_test_flash.h"
 
@@ -106,19 +108,6 @@ void flash_test(void)
 Case cases[] = {
     Case("Flash test", flash_test),
 };
-
-#else
-#warning FlashIAP test not supported on this target
-
-void dummy(void)
-{
-}
-
-Case cases[] = {
-    Case("Dummy test", dummy),
-};
-
-#endif /* DEVICE_FLASH */
 
 utest::v1::status_t greentea_setup(const size_t number_of_cases)
 {
