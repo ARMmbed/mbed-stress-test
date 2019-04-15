@@ -16,8 +16,12 @@ raas_timeout = 1200
 
 // Test combinations, for each listed target, each toolchain is build and tested on RaaS instance.
 targets = [
-    "K64F":           ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "eeva.mbedcloudtesting.com"],
-    "NUCLEO_F429ZI":  ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "ruka.mbedcloudtesting.com"],
+//    "DISCO_L475VG_IOT01A":  ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "auli.mbedcloudtesting.com"],
+    "K64F":                 ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "eeva.mbedcloudtesting.com", "tags": "HAS_SD_CARD"],
+    "NUCLEO_F429ZI":        ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "ruka.mbedcloudtesting.com", "tags": "HAS_SD_CARD"],
+//    "NRF52_DK":             ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "esme.mbedcloudtesting.com"],
+    "NRF52840_DK":          ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "auli.mbedcloudtesting.com"],
+//    "UBLOX_EVK_ODIN_W2":    ["toolchains": [ "ARM", "IAR", "GCC_ARM"], "raas": "ruka.mbedcloudtesting.com"],
 ]
 
 // Map toolchains to compiler labels to find suitable node on Jenkins.
@@ -103,9 +107,14 @@ def testStep(target, compilerLabel, toolchain) {
                 env.RAAS_PYCLIENT_ALLOCATION_QUEUE_TIMEOUT = raas_timeout
 
                 raas = targets[target]["raas"]
+                tags = targets[target]["tags"]
 
                 // execute greentea on RaaS.
-                execute("mbedgt --grm ${target}:raas_client:${raas}:80 -vV --test-spec ./ci/test_spec.json --polling-timeout 240 --tag-filters HAS_SD_CARD")
+                if (tags) {
+                    execute("mbedgt --grm ${target}:raas_client:${raas}:80 -vV --test-spec ./ci/test_spec.json --polling-timeout 240 --tag-filters ${tags}")
+                } else {
+                    execute("mbedgt --grm ${target}:raas_client:${raas}:80 -vV --test-spec ./ci/test_spec.json --polling-timeout 240")
+                }
 
                 // Clean up workarea.
                 step([$class: 'WsCleanup'])
