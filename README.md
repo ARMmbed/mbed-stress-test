@@ -5,18 +5,18 @@
  * Use mbed OS POSIX API to write 800 KiB file to storage using 1 byte - 32KiB buffers.
  * Use mbed OS FlashIAP driver to fill internal flash with data.
  * Test concurrency, read data from file and write to flash.
- 
+
  Test:
- * Filesystem: 
-   * Write a large file to filesystem and read it back again. 
+ * Filesystem:
+   * Write a large file to filesystem and read it back again.
    * Tests filesystem works with large files.
  * FlashIAP:
-   * Write a large file to internal flash and read it back again. 
+   * Write a large file to internal flash and read it back again.
    * Tests driver can write to internal flash.
  * File-to-flash:
    * Read a file from filesystem and store it in internal flash.
    * Tests if FlashIAP and SPI can work concurrently.
-   
+
 ### Network and TLS stress testing
 
  * Use mbed OS TCP Socket to download file over HTTPS.
@@ -35,6 +35,7 @@ Test:
  * Network-multiple-https:
    * Download multiple files simultaneously over HTTPS.
    * Tests the TLS stack can service multiple contexts concurrently.
+   * ***Warning*** This test is not enabled on IAR due to inconsistent heap configuration.
 
 ### Usage
 
