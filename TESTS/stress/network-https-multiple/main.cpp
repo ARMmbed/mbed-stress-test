@@ -27,6 +27,10 @@
 #error [NOT_SUPPORTED] No network configuration found for this target.
 #endif
 
+#if defined(__ICCARM__)
+#error [NOT_SUPPORTED] IAR not supported due to inconsistent heap configuration.
+#endif
+
 #include "mbed.h"
 
 #include "utest/utest.h"
