@@ -61,7 +61,12 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
         TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to set root CA");
 
         for (int tries = 0; tries < MAX_RETRIES; tries++) {
-            result = tlssocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 443);
+            SocketAddress address;
+
+            NetworkInterface::get_default_instance()->gethostbyname("lootbox.s3.dualstack.us-west-2.amazonaws.com", &address);
+            address.set_port(443);
+
+            result = tlssocket->connect(address);
             if (result == 0) {
                 break;
             }
@@ -81,7 +86,12 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
         TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to open socket");
 
         for (int tries = 0; tries < MAX_RETRIES; tries++) {
-            result = tcpsocket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 80);
+            SocketAddress address;
+
+            NetworkInterface::get_default_instance()->gethostbyname("lootbox.s3.dualstack.us-west-2.amazonaws.com", &address);
+            address.set_port(80);
+
+            result = tcpsocket->connect(address);
             if (result == 0) {
                 break;
             }
@@ -123,7 +133,7 @@ size_t mbed_stress_test_download(NetworkInterface* interface, const char* filena
         /* wait for async event */
         while(!event_fired)
         {
-            wait(1);
+            ThisThread::sleep_for(1s);
         }
         event_fired = false;
 

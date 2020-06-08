@@ -96,8 +96,10 @@ static control_t setup_network(const size_t call_count)
     }
 
     TEST_ASSERT_EQUAL(NSAPI_ERROR_OK, err);
-    printf("IP address is '%s'\n", interface->get_ip_address());
-    printf("MAC address is '%s'\n", interface->get_mac_address());
+    SocketAddress address;
+    interface->get_ip_address(&address);
+    printf("IP address is '%s'\r\n", address.get_ip_address());
+    printf("MAC address is '%s'\r\n", interface->get_mac_address());
 
     return CaseNext;
 }

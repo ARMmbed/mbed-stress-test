@@ -70,8 +70,13 @@ void download(size_t size)
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to set root CA");
 
     for (int tries = 0; tries < MAX_RETRIES; tries++) {
-        result = socket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 443);
-        if (result == 0) {
+        SocketAddress address;
+
+        NetworkInterface::get_default_instance()->gethostbyname("lootbox.s3.dualstack.us-west-2.amazonaws.com", &address);
+        address.set_port(443);
+
+        result = socket->connect(address);
+        if (result == NSAPI_ERROR_OK) {
             break;
         }
         printf("connection failed. retry %d of %d\r\n", tries, MAX_RETRIES);
@@ -186,8 +191,10 @@ static control_t setup_network(const size_t call_count)
     }
 
     TEST_ASSERT_EQUAL(NSAPI_ERROR_OK, err);
-    printf("IP address is '%s'\n", interface->get_ip_address());
-    printf("MAC address is '%s'\n", interface->get_mac_address());
+    SocketAddress address;
+    interface->get_ip_address(&address);
+    printf("IP address is '%s'\r\n", address.get_ip_address());
+    printf("MAC address is '%s'\r\n", interface->get_mac_address());
 
     return CaseNext;
 }

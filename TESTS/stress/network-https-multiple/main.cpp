@@ -115,22 +115,27 @@ void download(void)
 
     for (int tries = 0; tries < MAX_RETRIES; tries++) {
 
+        SocketAddress address;
+
+        NetworkInterface::get_default_instance()->gethostbyname("lootbox.s3.dualstack.us-west-2.amazonaws.com", &address);
+        address.set_port(443);
+
         tlsbug.lock();
-        result = socket->connect("lootbox.s3.dualstack.us-west-2.amazonaws.com", 443);
+        result = socket->connect(address);
         TEST_ASSERT_MESSAGE(result != NSAPI_ERROR_NO_SOCKET, "out of sockets");
         tlsbug.unlock();
 
-        if (result == 0) {
+        if (result == NSAPI_ERROR_OK) {
             break;
         }
 
-        tr_debug("%lu: connection failed: %d. retry %d of %d", thread_id, result, tries, MAX_RETRIES);
-        ThisThread::sleep_for(1000);
+        printf("%lu: connection failed: %d. retry %d of %d\r\n", thread_id, result, tries, MAX_RETRIES);
+        ThisThread::sleep_for(1s);
     }
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "failed to connect");
 
     socket->set_blocking(false);
-    tr_debug("%lu: non-blocking mode set", thread_id);
+    printf("%lu: non-blocking mode set\r\n", thread_id);
 
     if (thread_id == 0) {
         socket->sigio(socket_event_0);
@@ -145,7 +150,7 @@ void download(void)
     } else {
         TEST_ASSERT_MESSAGE(0, "wrong thread id");
     }
-    tr_debug("%lu: registered callback function", thread_id);
+    printf("%lu: registered callback function\r\n", thread_id);
 
     /* setup request */
     /* -1 to remove h from .h in header file name */
@@ -157,7 +162,7 @@ void download(void)
     memcpy(&request[strlen(part1)], filename, strlen(filename) - 1);
     memcpy(&request[strlen(part1) + strlen(filename) - 1], part2, strlen(part2));
 
-    tr_debug("%lu: request: %s[end]", thread_id, request);
+    printf("%lu: request: %s[end]\r\n", thread_id, request);
 
     /* send request to server */
     result = socket->send(request, request_size);
@@ -186,7 +191,7 @@ void download(void)
             result = socket->recv(receive_buffer, size);
             TEST_ASSERT_MESSAGE((result == NSAPI_ERROR_WOULD_BLOCK) || (result >= 0), "failed to read socket");
 
-//            tr_debug("result: %d\r\n", result);
+//            printf("result: %d\r\n", result);
 
             if (result > 0) {
 
@@ -218,15 +223,15 @@ void download(void)
                 }
 
 //                receive_buffer[result] = '\0';
-//                tr_debug("%s", receive_buffer);
-                tr_debug("%lu: received_bytes: %u", thread_id, received_bytes);
+//                printf("%s\r\n", receive_buffer);
+                printf("%lu: received_bytes: %u\r\n", thread_id, received_bytes);
             }
         }
         while ((result > 0) && (received_bytes < expected_bytes));
 
         if (result == MBEDTLS_ERR_SSL_WANT_WRITE) {
 
-            tr_debug("%lu: MBEDTLS_ERR_SSL_WANT_WRITE: %d", thread_id, MBEDTLS_ERR_SSL_WANT_WRITE);
+            printf("%lu: MBEDTLS_ERR_SSL_WANT_WRITE: %d\r\n", thread_id, MBEDTLS_ERR_SSL_WANT_WRITE);
             break;
         }
     }
@@ -235,7 +240,7 @@ void download(void)
     delete socket;
     delete[] receive_buffer;
 
-    tr_debug("%lu: done", thread_id);
+    printf("%lu: done\r\n", thread_id);
 }
 
 static control_t setup_network(const size_t call_count)
@@ -252,13 +257,15 @@ static control_t setup_network(const size_t call_count)
             break;
         } else {
 
-            tr_debug("Error connecting to network. Retrying %d of %d", tries, MAX_RETRIES);
+            printf("Error connecting to network. Retrying %d of %d\r\n", tries, MAX_RETRIES);
         }
     }
 
     TEST_ASSERT_EQUAL(NSAPI_ERROR_OK, err);
-    tr_debug("IP address is '%s'", interface->get_ip_address());
-    tr_debug("MAC address is '%s'", interface->get_mac_address());
+    SocketAddress address;
+    interface->get_ip_address(&address);
+    printf("IP address is '%s'\r\n", address.get_ip_address());
+    printf("MAC address is '%s'\r\n", interface->get_mac_address());
 
     return CaseNext;
 }
