@@ -26,12 +26,66 @@
 
 #include "mbed.h"
 
+#include "features/storage/filesystem/FileSystem.h"
+#include "features/storage/filesystem/fat/FATFileSystem.h"
+#include "features/storage/filesystem/littlefs/LittleFileSystem.h"
 #include "unity/unity.h"
+
+#define MAX_BLOCKDEVICE_SIZE (32*1024*1024)
+
+FileSystem* set_filesystem(BlockDevice* bd)
+{
+#if COMPONENT_SPIF || COMPONENT_QSPIF || COMPONENT_DATAFLASH
+
+    static LittleFileSystem flash("flash", bd);
+    flash.set_as_default();
+
+    return &flash;
+
+#elif COMPONENT_SD
+
+    static FATFileSystem sdcard("sd", bd);
+    sdcard.set_as_default();
+
+    return &sdcard;
+
+#elif COMPONENT_FLASHIAP
+
+    static LittleFileSystem flash("flash", bd);
+    flash.set_as_default();
+
+    return &flash;
+
+#else
+
+    return NULL;
+
+#endif
+
+}
 
 void mbed_stress_test_format_file(void)
 {
     BlockDevice* bd = BlockDevice::get_default_instance();
-    FileSystem* fs = FileSystem::get_default_instance();
+    TEST_ASSERT_NOT_NULL_MESSAGE(bd, "no BlockDevice defined");
+
+    mbed::bd_size_t size = bd->size();
+    TEST_ASSERT_NOT_EQUAL_MESSAGE(0, size, "incorrect BlockDevice size");
+
+    printf("BlockDevice size: %llu\r\n", size);
+
+    if (size > MAX_BLOCKDEVICE_SIZE) {
+        bd = new SlicingBlockDevice(bd, 0, MAX_BLOCKDEVICE_SIZE);
+        TEST_ASSERT_NOT_NULL_MESSAGE(bd, "unable to slice default BlockDevice");
+
+        size = bd->size();
+        TEST_ASSERT_EQUAL_INT_MESSAGE(MAX_BLOCKDEVICE_SIZE, size, "incorrect SlicingBlockDevice size");
+
+        printf("Adjusted BlockDevice size: %llu\r\n", size);
+    }
+
+    FileSystem* fs = set_filesystem(bd);
+    TEST_ASSERT_NOT_NULL_MESSAGE(fs, "unable to create FileSystem");
 
     int result = fs->reformat(bd);
     TEST_ASSERT_EQUAL_INT_MESSAGE(0, result, "could not format block device");
